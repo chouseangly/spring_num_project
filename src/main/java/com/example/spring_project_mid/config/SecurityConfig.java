@@ -37,7 +37,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Keep CSRF disabled for stateless API + simple form login
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/",
+                                // "/", // <-- REMOVED FROM permitAll() TO PROTECT THE HOME PAGE
                                 "/login",
                                 "/register",
                                 "/verify-otp",
@@ -54,7 +54,7 @@ public class SecurityConfig {
                 .formLogin(form -> form
                         .loginPage("/login") // Specify custom login page URL
                         .loginProcessingUrl("/login") // URL where Spring Security handles POST
-                        .defaultSuccessUrl("/home", true) // Redirect to /home on successful login
+                        .defaultSuccessUrl("/", true) // <-- CHANGED to redirect to root
                         .failureUrl("/login?error") // Redirect back to login page with error param
                         .permitAll() // Allow access to the login page itself
                 )

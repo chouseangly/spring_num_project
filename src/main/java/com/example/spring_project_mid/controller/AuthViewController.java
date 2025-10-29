@@ -124,21 +124,21 @@ public class AuthViewController {
         return "form/login";
     }
 
-    // --- START: ADDED THIS METHOD TO FIX THE 404 ERROR ---
+    // --- START: CHANGED THIS METHOD TO BE THE ROOT ---
     /**
-     * Shows the home page after a successful login.
+     * Shows the home page. This is now the root URL.
      */
-    @GetMapping("/home")
+    @GetMapping("/")
     public String showHomePage() {
         // This tells Thymeleaf to render the "home.html" template
         return "home";
     }
-    // --- END: ADDED METHOD ---
+    // --- END: CHANGED METHOD ---
 
 
-    // --- Root Redirect (Keep Existing) ---
-    @GetMapping("/")
-    public String redirectToLogin() {
-        return "redirect:/login";
-    }
+    // --- Root Redirect (REMOVED) ---
+    // @GetMapping("/")
+    // public String redirectToLogin() {
+    //    return "redirect:/login";
+    // }
 }
