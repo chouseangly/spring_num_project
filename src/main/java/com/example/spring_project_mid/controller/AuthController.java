@@ -1,23 +1,26 @@
 package com.example.spring_project_mid.controller;
 
+import ch.qos.logback.core.model.Model;
 import com.example.spring_project_mid.dto.*;
 import com.example.spring_project_mid.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @RestController
-@RequestMapping("/api/auth") // Standard prefix for auth endpoints
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
-        authService.register(registerRequest);
-        return ResponseEntity.ok("Registration successful. Please check your email to verify your account.");
+    public ResponseEntity<String> registerUser(Model model) {
+        model.addAttribute("registerRequest", new RegisterRequest());
+        return "form/register";
     }
 
     @PostMapping("/verify-otp")
