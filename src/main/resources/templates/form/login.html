@@ -3,48 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account</title>
+    <title>Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-<div class="min-h-screen bg-gray-100">
-    <div class="min-h-screen flex">
+<div class="min-h-[90vh] bg-gray-100">
+    <div class="min-h-[90vh] flex">
         <div class="w-full lg:w-1/2 flex items-center justify-center p-8">
             <div class="w-full max-w-md">
                 <div class="bg-white rounded-2xl shadow-xl p-8">
                     <div class="text-center mb-8">
                         <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
-                            <i class="fas fa-user-plus text-red-600 fa-lg"></i>
+                            <i class="fas fa-sign-in-alt text-red-600 fa-lg"></i>
                         </div>
-                        <h2 class="text-2xl font-bold text-gray-800">Create Account</h2>
-                        <p class="text-gray-600 mt-2">Get started with your account</p>
+                        <h2 class="text-2xl font-bold text-gray-800">Welcome Back!</h2>
+                        <p class="text-gray-600 mt-2">Please sign in to continue</p>
                     </div>
 
-                    <form th:action="@{/register}" method="post" th:object="${registerRequest}">
+                    <div th:if="${successMessage}"
+                         class="mb-4 p-3 bg-green-100 text-green-700 rounded-lg">
+                        <p th:text="${successMessage}">Success!</p>
+                    </div>
+                    <div th:if="${param.error}"
+                         class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+                        <p>Invalid email or password.</p>
+                    </div>
+                    <div th:if="${param.logout}"
+                         class="mb-4 p-3 bg-blue-100 text-blue-700 rounded-lg">
+                        <p>You have been logged out.</p>
+                    </div>
+
+
+                    <form th:action="@{/login}" method="post" th:object="${loginRequest}">
 
                         <div th:if="${#fields.hasGlobalErrors()}"
                              class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
                             <p th:each="err : ${#fields.globalErrors()}" th:text="${err}">Global error message</p>
                         </div>
-                        <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
-                            <div class="relative">
-                                <input type="text" th:field="*{username}"
-                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
-                                       placeholder="JohnDoe"
-                                       th:classappend="${#fields.hasErrors('username')} ? 'border-red-500' : ''"/>
-                            </div>
-                            <p th:if="${#fields.hasErrors('username')}" th:errors="*{username}"
-                               class="mt-2 text-sm text-red-600">Error</p>
-                        </div>
 
                         <div class="mb-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
                             <div class="relative">
-                                <input type="email" th:field="*{email}"
-                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
-                                       placeholder="you@example.com"
+                                <input type="email" th:field="*{email}" name="username" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
+                                       placeholder="you@example.com" required
                                        th:classappend="${#fields.hasErrors('email')} ? 'border-red-500' : ''"/>
                                 <i class="fas fa-envelope absolute right-2 top-4 w-6 h-6 text-gray-400"></i>
                             </div>
@@ -55,36 +57,30 @@
                         <div class="mb-6">
                             <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
                             <div class="relative">
-                                <input type="password" th:field="*{password}"
-                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
-                                       placeholder="••••••••"
+                                <input type="password" th:field="*{password}" name="password" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
+                                       placeholder="••••••••" required
                                        th:classappend="${#fields.hasErrors('password')} ? 'border-red-500' : ''"/>
                             </div>
                             <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}"
                                class="mt-2 text-sm text-red-600">Error</p>
                         </div>
 
-                        <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-                            <div class="relative">
-                                <input type="password" th:field="*{confirmPassword}"
-                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
-                                       placeholder="••••••••"
-                                       th:classappend="${#fields.hasErrors('confirmPassword')} ? 'border-red-500' : ''"/>
-                            </div>
-                            <p th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"
-                               class="mt-2 text-sm text-red-600">Error</p>
+                        <div class="text-right mb-6">
+                            <a th:href="@{/forgot-password}" class="text-sm text-red-600 hover:text-red-700 font-semibold focus:outline-none">
+                                Forgot Password?
+                            </a>
                         </div>
+
 
                         <button type="submit"
                                 class="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 focus:ring-4 focus:ring-red-600 focus:ring-opacity-50 transition-colors">
-                            <span>Create Account</span>
+                            <span>Sign In</span>
                         </button>
 
                         <p class="mt-6 text-center text-gray-600">
-                            Already have an account?
-                            <a th:href="@{/login}" class="ml-1 text-red-600 hover:text-red-700 font-semibold focus:outline-none">
-                                Sign in
+                            Don't have an account?
+                            <a th:href="@{/register}" class="ml-1 text-red-600 hover:text-red-700 font-semibold focus:outline-none">
+                                Sign up
                             </a>
                         </p>
                     </form>

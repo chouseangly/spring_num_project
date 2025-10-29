@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OTP Verification</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class' // Enable dark mode based on class
+        }
+    </script>
+</head>
+<body data-theme='dark' class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 min-h-screen flex items-center justify-center p-4">
+<div class="bg-white dark:bg-gray-700 shadow-2xl rounded-3xl w-full max-w-md overflow-hidden transform transition-transform duration-300 hover:scale-105">
+    <div class="p-8 text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" class="mx-auto mb-6 w-48 h-48">
+            <circle cx="200" cy="200" r="150" fill="#3B82F6" />
+            <circle cx="200" cy="200" r="120" fill="#FFFFFF" />
+            <circle cx="200" cy="200" r="90" fill="#3B82F6" />
+            <circle cx="200" cy="200" r="60" fill="#FFFFFF" />
+            <text x="200" y="200" text-anchor="middle" fill="#2563EB" font-size="40" font-weight="bold" dy=".3em" class="text-center">OTP</text>
+        </svg>
+
+        <h2 class="text-2xl font-bold mb-2 text-gray-800 dark:text-white">Verify Your Account</h2>
+        <p class="text-sm text-gray-600 dark:text-gray-300 mb-6">
+            Enter the 6-digit code sent to <strong th:text="${email}">your.email@example.com</strong>
+        </p>
+
+        <form th:action="@{/verify-otp}" method="post" th:object="${verifyOtpRequest}" id="otpForm">
+
+            <input type="hidden" th:field="*{otp}" id="fullOtp"/>
+            <input type="hidden" th:field="*{email}"/>
+
+            <div th:if="${#fields.hasGlobalErrors()}"
+                 class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+                <p th:each="err : ${#fields.globalErrors()}" th:text="${err}">Global error message</p>
+            </div>
+            <div th:if="${#fields.hasErrors('otp')}"
+                 class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+                <p th:errors="*{otp}">OTP Error</p>
+            </div>
+
+
+            <div class="flex justify-center space-x-2 md:space-x-4 mb-6" id="otpInputs">
+                <input type="text" maxlength="1" required th:attr="data-index='0'"
+                       class="otp-input w-10 h-14 md:w-12 md:h-16 text-center text-2xl border-2 border-blue-500 rounded-xl
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500
+                                  dark:bg-gray-600 dark:text-white dark:border-blue-400
+                                  transition-transform duration-300 hover:scale-110">
+                <input type="text" maxlength="1" required th:attr="data-index='1'"
+                       class="otp-input w-10 h-14 md:w-12 md:h-16 text-center text-2xl border-2 border-blue-500 rounded-xl
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500
+                                  dark:bg-gray-600 dark:text-white dark:border-blue-400
+                                  transition-transform duration-300 hover:scale-110">
+                <input type="text" maxlength="1" required th:attr="data-index='2'"
+                       class="otp-input w-10 h-14 md:w-12 md:h-16 text-center text-2xl border-2 border-blue-500 rounded-xl
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500
+                                  dark:bg-gray-600 dark:text-white dark:border-blue-400
+                                  transition-transform duration-300 hover:scale-110">
+                <input type="text" maxlength="1" required th:attr="data-index='3'"
+                       class="otp-input w-10 h-14 md:w-12 md:h-16 text-center text-2xl border-2 border-blue-500 rounded-xl
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500
+                                  dark:bg-gray-600 dark:text-white dark:border-blue-400
+                                  transition-transform duration-300 hover:scale-110">
+                <input type="text" maxlength="1" required th:attr="data-index='4'"
+                       class="otp-input w-10 h-14 md:w-12 md:h-16 text-center text-2xl border-2 border-blue-500 rounded-xl
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500
+                                  dark:bg-gray-600 dark:text-white dark:border-blue-400
+                                  transition-transform duration-300 hover:scale-110">
+                <input type="text" maxlength="1" required th:attr="data-index='5'"
+                       class="otp-input w-10 h-14 md:w-12 md:h-16 text-center text-2xl border-2 border-blue-500 rounded-xl
+                                  focus:outline-none focus:ring-2 focus:ring-blue-500
+                                  dark:bg-gray-600 dark:text-white dark:border-blue-400
+                                  transition-transform duration-300 hover:scale-110">
+            </div>
+
+            <div class="text-sm text-gray-600 dark:text-gray-300 mb-6">
+                Didn't receive code?
+                <a href="#" class="text-blue-500 hover:underline dark:text-blue-400 transition-colors duration-300 hover:text-blue-600 dark:hover:text-blue-500">Resend OTP</a>
+            </div>
+
+            <button type="submit"
+                    class="w-full py-4 bg-blue-500 text-white rounded-xl hover:bg-blue-600
+                               transition-transform duration-300 hover:scale-105
+                               dark:bg-blue-600 dark:hover:bg-blue-700">
+                Verify OTP
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const otpInputsContainer = document.getElementById('otpInputs');
+    const otpInputs = otpInputsContainer.querySelectorAll('.otp-input');
+    const fullOtpInput = document.getElementById('fullOtp');
+    const otpForm = document.getElementById('otpForm');
+
+    otpInputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            // Allow only digits
+            input.value = input.value.replace(/[^0-9]/g, '');
+
+            // Move to next input if a digit is entered
+            if (input.value && index < otpInputs.length - 1) {
+                otpInputs[index + 1].focus();
+            }
+            updateFullOtp();
+        });
+
+        input.addEventListener('keydown', (e) => {
+            // Move to previous input on backspace if current input is empty
+            if (e.key === 'Backspace' && !input.value && index > 0) {
+                otpInputs[index - 1].focus();
+                updateFullOtp();
+            }
+        });
+
+        // Handle paste
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pasteData = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+            const pasteLength = pasteData.length;
+
+            for (let i = 0; i < pasteLength && (index + i) < otpInputs.length; i++) {
+                otpInputs[index + i].value = pasteData[i];
+            }
+
+            // Focus the next empty input or the last one
+            const nextFocusIndex = Math.min(index + pasteLength, otpInputs.length - 1);
+            otpInputs[nextFocusIndex].focus();
+
+            updateFullOtp(); // Update after pasting
+        });
+    });
+
+    function updateFullOtp() {
+        let combinedOtp = '';
+        otpInputs.forEach(input => {
+            combinedOtp += input.value;
+        });
+        fullOtpInput.value = combinedOtp;
+        // console.log("Combined OTP:", fullOtpInput.value); // For debugging
+    }
+
+    // Ensure the full OTP is updated before form submission
+    otpForm.addEventListener('submit', (e) => {
+        updateFullOtp();
+        // Basic check if all inputs are filled (optional, as 'required' handles this)
+        if (fullOtpInput.value.length !== otpInputs.length) {
+            // console.error("OTP is not complete.");
+            // Optionally add user feedback here
+            // e.preventDefault(); // Prevent submission if needed
+        }
+    });
+
+    // Initialize focus on the first input
+    if(otpInputs.length > 0) {
+        otpInputs[0].focus();
+    }
+
+</script>
+</body>
+</html>

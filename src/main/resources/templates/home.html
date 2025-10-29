@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+<div class="max-w-4xl mx-auto bg-white p-6 rounded shadow">
+    <h1 class="text-2xl font-bold mb-4">Welcome Home!</h1>
+
+    <p sec:authorize="isAuthenticated()">
+        Logged in as: <strong sec:authentication="name">User</strong>
+    </p>
+    <p sec:authorize="!isAuthenticated()">
+        You are not logged in.
+    </p>
+
+    <form th:action="@{/logout}" method="post" class="mt-4" sec:authorize="isAuthenticated()">
+        <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600">
+            Logout
+        </button>
+    </form>
+
+</div>
+</body>
+</html>
