@@ -27,11 +27,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final UserRepository userRepository;
-    // Inject JwtAuthenticationFilter directly if not already done via constructor
-    private final JwtAuthenticationFilter jwtAuthFilter;
+    // --- FIX 1: REMOVE JwtAuthenticationFilter from constructor injection ---
+    // private final JwtAuthenticationFilter jwtAuthFilter; // <-- DELETED
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    // --- FIX 1: ADD JwtAuthenticationFilter as a method parameter ---
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         http
                 .csrf(csrf -> csrf.disable()) // Keep CSRF disabled for stateless API + simple form login
                 .authorizeHttpRequests(auth -> auth
@@ -49,7 +50,7 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                // --- START: Form Login Configuration ---
+                // --- START: Form Login Configuration (Unchanged) ---
                 .formLogin(form -> form
                         .loginPage("/login") // Specify custom login page URL
                         .loginProcessingUrl("/login") // URL where Spring Security handles POST
@@ -58,7 +59,7 @@ public class SecurityConfig {
                         .permitAll() // Allow access to the login page itself
                 )
                 // --- END: Form Login Configuration ---
-                // --- START: Logout Configuration (Optional but Recommended) ---
+                // --- START: Logout Configuration (Unchanged) ---
                 .logout(logout -> logout
                         .logoutUrl("/logout") // URL to trigger logout
                         .logoutSuccessUrl("/login?logout") // Redirect after logout
@@ -68,16 +69,14 @@ public class SecurityConfig {
                 )
                 // --- END: Logout Configuration ---
 
-                // --- Session Management: Important for combining form login and stateless API ---
-                // If primarily using JWT/API, keep STATELESS.
-                // If primarily using form login with sessions, use IF_REQUIRED or ALWAYS.
-                // For now, let's keep STATELESS as your initial setup used JWT heavily.
-                // Be aware this means form login won't create a persistent session by default.
-                // If you need sessions for web users, change this.
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // --- FIX 2: CHANGE Session Management Policy ---
+                // From STATELESS to IF_REQUIRED. This allows sessions for formLogin
+                // but still supports stateless JWT for your API.
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
 
                 .authenticationProvider(authenticationProvider())
                 // Add JWT filter *before* the standard form login filter
+                // This now correctly uses the 'jwtAuthFilter' parameter from the method
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
 

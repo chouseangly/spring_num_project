@@ -120,9 +120,21 @@ public class AuthViewController {
     @GetMapping("/login")
     public String showLoginForm(Model model) {
         model.addAttribute("successMessage", model.getAttribute("successMessage"));
-        // model.addAttribute("loginRequest", new LoginRequest());
+        // model.addAttribute("loginRequest", new LoginRequest()); // This is not needed for formLogin
         return "form/login";
     }
+
+    // --- START: ADDED THIS METHOD TO FIX THE 404 ERROR ---
+    /**
+     * Shows the home page after a successful login.
+     */
+    @GetMapping("/home")
+    public String showHomePage() {
+        // This tells Thymeleaf to render the "home.html" template
+        return "home";
+    }
+    // --- END: ADDED METHOD ---
+
 
     // --- Root Redirect (Keep Existing) ---
     @GetMapping("/")
