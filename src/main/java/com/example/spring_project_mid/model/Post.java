@@ -8,13 +8,14 @@ import lombok.AllArgsConstructor;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
-import java.util.HashSet; // <-- ADD IMPORT
-import java.util.Set;     // <-- ADD IMPORT
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "posts") // <-- FIX: Changed from "events" to "posts"
 public class Post {
 
     @Id
@@ -33,38 +34,34 @@ public class Post {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @ToString.Exclude // <-- ADD: Prevents recursive toString()
-    @EqualsAndHashCode.Exclude // <-- ADD: Prevents recursive hashCode()
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private User user;
 
-    // --- START: ADD THIS 'FACULTY' RELATIONSHIP BACK ---
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "faculty_id") // This column must exist in your 'post' table
+    @JoinColumn(name = "faculty_id")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Faculty faculty;
-    // --- END: 'FACULTY' RELATIONSHIP ---
 
-    // --- START: ADD 'COMMENTS' RELATIONSHIP BACK ---
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Comment> comments = new HashSet<>();
-    // --- END: 'COMMENTS' RELATIONSHIP ---
 
-    // --- START: ADD 'VOTES' RELATIONSHIP BACK ---
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Vote> votes = new HashSet<>();
-    // --- END: 'VOTES' RELATIONSHIP ---
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        if (this.createdAt == null) {
+            this.createdAt = LocalDateTime.now();
+        }
         this.updatedAt = LocalDateTime.now();
     }
 

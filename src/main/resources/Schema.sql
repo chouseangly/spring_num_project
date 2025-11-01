@@ -20,13 +20,14 @@ CREATE TABLE users (
                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
 -- 3) Now add FK for faculties.owner_id
 ALTER TABLE faculties
     ADD CONSTRAINT fk_owner
         FOREIGN KEY (owner_id) REFERENCES users(id);
 
 -- 4) EVENTS TABLE
-CREATE TABLE events (
+CREATE TABLE posts (
                         id BIGSERIAL PRIMARY KEY,
                         title VARCHAR(255) NOT NULL,
                         content TEXT,
@@ -37,11 +38,11 @@ CREATE TABLE events (
                         status VARCHAR(20) DEFAULT 'APPROVED',
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
+drop table comments,votes cascade ;
 -- 5) COMMENTS TABLE
 CREATE TABLE comments (
                           id BIGSERIAL PRIMARY KEY,
-                          event_id BIGINT REFERENCES events(id) ON DELETE CASCADE,
+                          event_id BIGINT REFERENCES posts(id) ON DELETE CASCADE,
                           user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
                           parent_comment_id BIGINT REFERENCES comments(id) ON DELETE CASCADE,
                           content TEXT NOT NULL,
@@ -51,12 +52,13 @@ CREATE TABLE comments (
 -- 6) VOTES / LIKES
 CREATE TABLE votes (
                        id BIGSERIAL PRIMARY KEY,
-                       event_id BIGINT REFERENCES events(id) ON DELETE CASCADE,
+                       event_id BIGINT REFERENCES posts(id) ON DELETE CASCADE,
                        user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
                        vote_type INT NOT NULL CHECK (vote_type IN (1, -1)),
                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                        UNIQUE (event_id, user_id)
 );
+
 
 -- 7) NOTIFICATIONS TABLE
 CREATE TABLE notifications (

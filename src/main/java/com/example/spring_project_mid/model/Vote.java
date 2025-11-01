@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "votes", uniqueConstraints = {
-        // --- CHANGE 'event_id' to 'post_id' ---
+        // --- FIX: Change 'event_id' to 'post_id' ---
         @UniqueConstraint(columnNames = {"post_id", "user_id"})
 })
 public class Vote {
@@ -22,7 +22,7 @@ public class Vote {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    // --- CHANGE 'event_id' to 'post_id' and RENAME 'event' to 'post' ---
+    // --- FIX: Change 'event_id' to 'post_id' ---
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
