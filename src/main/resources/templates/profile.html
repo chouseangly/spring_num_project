@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>My Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="max-w-4xl mx-auto p-4 md:p-8">
+    <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">My Profile</h2>
+
+        <p class="text-lg">
+            Username: <strong th:text="${username}">myusername</strong>
+        </p>
+
+    </div>
+</div>
+
+</body>
+</html>

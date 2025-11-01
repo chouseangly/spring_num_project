@@ -8,6 +8,7 @@ import com.example.spring_project_mid.repository.EventRepository; // <-- IMPORT 
 import com.example.spring_project_mid.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -108,6 +109,18 @@ public class AuthViewController {
     public String showLoginForm(Model model) {
         model.addAttribute("successMessage", model.getAttribute("successMessage"));
         return "form/login";
+    }
+
+    @GetMapping("/profile")
+    public String showProfilePage(Model model) {
+        // Get username from Spring Security's context
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        // You could also fetch the full user from the repository if you need more details
+        // For now, we'll just pass the username to the page
+        model.addAttribute("username", username);
+
+        return "profile"; // This will render templates/profile.html
     }
 
     // --- START: MODIFIED HOME PAGE METHOD ---
