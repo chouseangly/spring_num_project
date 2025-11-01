@@ -1,6 +1,7 @@
 package com.example.spring_project_mid.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -17,17 +18,17 @@ import java.util.Map;
 @Service
 public class PinataService {
 
-    @Value("${pinata.api.key}")
-    private String pinataApiKey;
-
-    @Value("${pinata.secret.api.key}")
-    private String pinataSecretApiKey;
+    // --- START: MODIFIED PROPERTIES ---
+    // This now correctly matches your properties file
+    @Value("${pinata.jwt.token}")
+    private String pinataJwtToken;
 
     @Value("${pinata.api.url}")
     private String pinataApiUrl; // Should be https://api.pinata.cloud/pinning/pinFileToIPFS
 
     @Value("${ipfs.gateway.url}")
-    private String ipfsGatewayUrl; // e.g., https://gateway.pinata.cloud/ipfs/ or https://ipfs.io/ipfs/
+    private String ipfsGatewayUrl; // e.g., https://gateway.pinata.cloud/ipfs/
+    // --- END: MODIFIED PROPERTIES ---
 
     private final RestTemplate restTemplate;
 
@@ -38,18 +39,23 @@ public class PinataService {
     public String uploadFile(MultipartFile file) throws IOException {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.set("pinata_api_key", pinataApiKey);
-        headers.set("pinata_secret_api_key", pinataSecretApiKey);
+
+        // --- THIS IS THE FIX ---
+        // Pinata now uses a JWT Bearer Token for authentication
+        // This will now correctly be: "Bearer eyJhbGci..."
+        headers.set("Authorization", "Bearer " + pinataJwtToken);
+        // --- END OF FIX ---
 
         MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-        body.add("file", new ByteArrayResource(file.getBytes()) {
+        body.add("file", new PinataService.ByteArrayResource(file.getBytes()) {
             @Override
             public String getFilename() {
+                // Use a generic name or a secure random name if desired
                 return file.getOriginalFilename();
             }
         });
 
-        // Optional: Add metadata like filename
+        // Optional: Add metadata
         MultiValueMap<String, String> pinataMetadata = new LinkedMultiValueMap<>();
         pinataMetadata.add("name", file.getOriginalFilename());
         body.add("pinataMetadata", pinataMetadata);
