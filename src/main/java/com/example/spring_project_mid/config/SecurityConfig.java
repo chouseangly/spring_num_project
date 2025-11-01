@@ -39,6 +39,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 // "/", // <-- REMOVED FROM permitAll() TO PROTECT THE HOME PAGE
                                 "/login",
+                                "/",
                                 "/register",
                                 "/verify-otp",
                                 "/forgot-password", // Add if you create this page

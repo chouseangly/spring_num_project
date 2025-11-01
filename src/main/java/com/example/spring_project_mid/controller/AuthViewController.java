@@ -1,8 +1,10 @@
 package com.example.spring_project_mid.controller;
 
-import com.example.spring_project_mid.dto.AuthResponse; // <-- Import needed
+import com.example.spring_project_mid.dto.AuthResponse;
 import com.example.spring_project_mid.dto.RegisterRequest;
-import com.example.spring_project_mid.dto.VerifyOtpRequest; // <-- Import needed
+import com.example.spring_project_mid.dto.VerifyOtpRequest;
+import com.example.spring_project_mid.model.Event; // <-- IMPORT Event
+import com.example.spring_project_mid.repository.EventRepository; // <-- IMPORT EventRepository
 import com.example.spring_project_mid.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,16 +16,19 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam; // <-- Import needed
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List; // <-- IMPORT List
 
 @Controller
 @RequiredArgsConstructor
 public class AuthViewController {
 
     private final AuthService authService;
+    private final EventRepository eventRepository; // <-- ADD EventRepository
 
-    // --- Registration Methods (Keep Existing) ---
+    // --- Registration Methods (No Change) ---
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
         model.addAttribute("registerRequest", new RegisterRequest());
@@ -56,34 +61,24 @@ public class AuthViewController {
             return "form/register";
         }
 
-        // --- CHANGE: Redirect to OTP page instead of login ---
-        // Pass the email as a parameter to the OTP page
         redirectAttributes.addAttribute("email", registerRequest.getEmail());
         redirectAttributes.addFlashAttribute("infoMessage",
                 "Registration initiated! Please check your email for the OTP.");
-        return "redirect:/verify-otp"; // <-- Redirect to the OTP verification page
+        return "redirect:/verify-otp";
     }
 
-    // --- START: New OTP Verification Methods ---
-
-    /**
-     * Shows the OTP verification form.
-     * Expects an 'email' parameter in the URL (from the redirect after registration).
-     */
+    // --- OTP Verification Methods (No Change) ---
     @GetMapping("/verify-otp")
     public String showVerifyOtpForm(@RequestParam("email") String email, Model model) {
         VerifyOtpRequest verifyOtpRequest = new VerifyOtpRequest();
-        verifyOtpRequest.setEmail(email); // Pre-populate email
+        verifyOtpRequest.setEmail(email);
 
         model.addAttribute("verifyOtpRequest", verifyOtpRequest);
-        model.addAttribute("email", email); // Also add email directly for display
-        model.addAttribute("infoMessage", model.getAttribute("infoMessage")); // Show message from registration redirect
-        return "form/verify-otp"; // Return the name of the new HTML file
+        model.addAttribute("email", email);
+        model.addAttribute("infoMessage", model.getAttribute("infoMessage"));
+        return "form/verify-otp";
     }
 
-    /**
-     * Processes the OTP verification form submission.
-     */
     @PostMapping("/verify-otp")
     public String processOtpVerification(
             @Valid @ModelAttribute("verifyOtpRequest") VerifyOtpRequest verifyOtpRequest,
@@ -92,53 +87,44 @@ public class AuthViewController {
             Model model
     ) {
         if (bindingResult.hasErrors()) {
-            // If validation fails (e.g., OTP field is empty), show the form again
-            model.addAttribute("email", verifyOtpRequest.getEmail()); // Keep email displayed
+            model.addAttribute("email", verifyOtpRequest.getEmail());
             return "form/verify-otp";
         }
 
         try {
-            // Call the existing service method
             AuthResponse response = authService.verifyOtp(verifyOtpRequest);
-
-            // On success, redirect to login with a success message
             redirectAttributes.addFlashAttribute("successMessage", response.getMessage());
-            // Optionally: You could automatically log the user in here and redirect elsewhere
             return "redirect:/login";
 
         } catch (RuntimeException e) {
-            // On failure (Invalid OTP, Expired OTP, User not found), add a global error
             bindingResult.addError(new ObjectError("verifyOtpRequest", e.getMessage()));
-            model.addAttribute("email", verifyOtpRequest.getEmail()); // Keep email displayed
-            return "form/verify-otp"; // Show the form again with the error
+            model.addAttribute("email", verifyOtpRequest.getEmail());
+            return "form/verify-otp";
         }
     }
-    // --- END: New OTP Verification Methods ---
 
-
-    // --- Login Method (Keep Existing) ---
+    // --- Login Method (No Change) ---
     @GetMapping("/login")
     public String showLoginForm(Model model) {
         model.addAttribute("successMessage", model.getAttribute("successMessage"));
-        // model.addAttribute("loginRequest", new LoginRequest()); // This is not needed for formLogin
         return "form/login";
     }
 
-    // --- START: CHANGED THIS METHOD TO BE THE ROOT ---
+    // --- START: MODIFIED HOME PAGE METHOD ---
     /**
-     * Shows the home page. This is now the root URL.
+     * Shows the home page, now with a feed of events.
      */
     @GetMapping("/")
-    public String showHomePage() {
+    public String showHomePage(Model model) { // <-- ADD Model
+
+        // Fetch all events, newest first
+        List<Event> events = eventRepository.findAllByOrderByCreatedAtDesc();
+
+        // Add the list to the model so Thymeleaf can access it
+        model.addAttribute("events", events);
+
         // This tells Thymeleaf to render the "home.html" template
         return "home";
     }
-    // --- END: CHANGED METHOD ---
-
-
-    // --- Root Redirect (REMOVED) ---
-    // @GetMapping("/")
-    // public String redirectToLogin() {
-    //    return "redirect:/login";
-    // }
+    // --- END: MODIFIED METHOD ---
 }
