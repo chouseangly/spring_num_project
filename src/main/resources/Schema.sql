@@ -26,37 +26,40 @@ ALTER TABLE faculties
     ADD CONSTRAINT fk_owner
         FOREIGN KEY (owner_id) REFERENCES users(id);
 
--- 4) EVENTS TABLE
+-- 4) POSTS TABLE (This is already correct)
 CREATE TABLE posts (
-                        id BIGSERIAL PRIMARY KEY,
-                        title VARCHAR(255) NOT NULL,
-                        content TEXT,
-                        image_url VARCHAR(255),
-                        faculty_id BIGINT REFERENCES faculties(id),
-                        user_id BIGINT REFERENCES users(id),
-                        is_global BOOLEAN DEFAULT FALSE,
-                        status VARCHAR(20) DEFAULT 'APPROVED',
-                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                       id BIGSERIAL PRIMARY KEY,
+                       title VARCHAR(255) NOT NULL,
+                       content TEXT,
+    -- image_url VARCHAR(255), -- This column is no longer used by Post.java
+                       link_url VARCHAR(255), -- This will be added by ddl-auto=update
+                       media_urls TEXT, -- This will be added by ddl-auto=update
+                       faculty_id BIGINT REFERENCES faculties(id),
+                       user_id BIGINT REFERENCES users(id),
+    -- is_global BOOLEAN DEFAULT FALSE,
+    -- status VARCHAR(20) DEFAULT 'APPROVED',
+                       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                       updated_at TIMESTAMP -- This will be added by ddl-auto=update
 );
-drop table comments,votes cascade ;
--- 5) COMMENTS TABLE
+
+-- 5) COMMENTS TABLE (FIXED)
 CREATE TABLE comments (
                           id BIGSERIAL PRIMARY KEY,
-                          event_id BIGINT REFERENCES posts(id) ON DELETE CASCADE,
+                          post_id BIGINT REFERENCES posts(id) ON DELETE CASCADE, -- <-- RENAMED from event_id
                           user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
                           parent_comment_id BIGINT REFERENCES comments(id) ON DELETE CASCADE,
                           content TEXT NOT NULL,
                           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6) VOTES / LIKES
+-- 6) VOTES / LIKES (FIXED)
 CREATE TABLE votes (
                        id BIGSERIAL PRIMARY KEY,
-                       event_id BIGINT REFERENCES posts(id) ON DELETE CASCADE,
+                       post_id BIGINT REFERENCES posts(id) ON DELETE CASCADE, -- <-- RENAMED from event_id
                        user_id BIGINT REFERENCES users(id) ON DELETE CASCADE,
                        vote_type INT NOT NULL CHECK (vote_type IN (1, -1)),
                        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                       UNIQUE (event_id, user_id)
+                       UNIQUE (post_id, user_id) -- <-- RENAMED from event_id
 );
 
 

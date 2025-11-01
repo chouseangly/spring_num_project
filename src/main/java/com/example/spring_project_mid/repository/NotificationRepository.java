@@ -1,5 +1,13 @@
 package com.example.spring_project_mid.repository;
 
 import com.example.spring_project_mid.model.Notification;
+import com.example.spring_project_mid.model.User; // <-- ADD IMPORT
 import org.springframework.data.jpa.repository.JpaRepository;
-public interface NotificationRepository extends JpaRepository<Notification, Long> {}
+
+import java.util.List; // <-- ADD IMPORT
+
+public interface NotificationRepository extends JpaRepository<Notification, Long> {
+
+    // --- ADD THIS METHOD ---
+    List<Notification> findByUserOrderByCreatedAtDesc(User user);
+}
