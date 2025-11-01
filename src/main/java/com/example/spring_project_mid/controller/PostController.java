@@ -1,18 +1,22 @@
 package com.example.spring_project_mid.controller;
 
-import com.example.spring_project_mid.model.Post; // Assuming you renamed Event to Post
+import com.example.spring_project_mid.model.Image; // <-- IMPORT
+import com.example.spring_project_mid.model.Post;
 import com.example.spring_project_mid.model.User;
-import com.example.spring_project_mid.repository.PostRepository; // Assuming you renamed EventRepository to PostRepository
-import com.example.spring_project_mid.service.PinataService; // We will create this
+import com.example.spring_project_mid.repository.PostRepository;
+import com.example.spring_project_mid.service.PinataService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.ResponseEntity;
+
 import java.util.Collections;
+import java.util.HashSet; // <-- IMPORT
 import java.util.Map;
+import java.util.Set; // <-- IMPORT
 
 @Controller
 @RequestMapping("/posts")
@@ -28,19 +32,39 @@ public class PostController {
         return "create-post"; // This will render templates/create-post.html
     }
 
+    // --- START: MODIFIED createPost METHOD ---
     @PostMapping("/create")
     public String createPost(
             @ModelAttribute Post post,
+            @RequestParam(value = "mediaUrls", required = false) String mediaUrls, // <-- Get URLs as separate param
             @AuthenticationPrincipal User user
-            // @RequestParam(value = "postImage", required = false) MultipartFile postImage // For traditional form submit
     ) {
         post.setUser(user);
-        // Set other defaults if necessary, e.g., createdAt
-        postRepository.save(post);
+
+        // --- NEW LOGIC ---
+        // If mediaUrls string is not empty, split it, create Image objects, and add to post
+        if (mediaUrls != null && !mediaUrls.isEmpty()) {
+            String[] urls = mediaUrls.split(",");
+            Set<Image> images = new HashSet<>();
+            for (String url : urls) {
+                if (!url.trim().isEmpty()) { // Avoid empty strings
+                    Image newImage = new Image();
+                    newImage.setUrl(url.trim());
+                    newImage.setPost(post); // Link image to post
+                    images.add(newImage);
+                }
+            }
+            post.setImages(images); // Add the set of images to the post
+        }
+        // --- END NEW LOGIC ---
+
+        postRepository.save(post); // This will save the post and cascade-save the new Image objects
         return "redirect:/"; // Redirect to homepage or post detail
     }
+    // --- END: MODIFIED createPost METHOD ---
 
-    // --- NEW: Endpoint for AJAX Pinata Upload ---
+
+    // --- NEW: Endpoint for AJAX Pinata Upload (No Change) ---
     @PostMapping("/upload-to-pinata")
     @ResponseBody // Important for returning JSON directly
     public ResponseEntity<?> uploadFileToPinata(@RequestParam("file") MultipartFile file) {

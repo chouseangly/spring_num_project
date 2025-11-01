@@ -29,8 +29,9 @@ public class Post {
 
     private String linkUrl; // For link posts
 
-    @Column(columnDefinition = "TEXT")
-    private String mediaUrls; // Comma-separated IPFS gateway URLs for images/videos
+    // --- REMOVED THIS ---
+    // @Column(columnDefinition = "TEXT")
+    // private String mediaUrls; // Comma-separated IPFS gateway URLs for images/videos
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
@@ -53,6 +54,13 @@ public class Post {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Vote> votes = new HashSet<>();
+
+    // --- ADDED THIS ---
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<Image> images = new HashSet<>();
+    // --- END ADD ---
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

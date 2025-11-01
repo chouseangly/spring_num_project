@@ -45,16 +45,16 @@
                     <a th:if="${post.linkUrl == null or #strings.isEmpty(post.linkUrl)}" href="#" class="hover:text-red-600" th:text="${post.title}">Post Title (Text/Media)</a>
                 </h3>
 
-                <div th:if="${post.mediaUrls != null and not #strings.isEmpty(post.mediaUrls)}" class="my-4">
-                    <div th:each="url : ${#strings.arraySplit(post.mediaUrls, ',')}" class="mb-2">
-                        <div th:if="${#strings.endsWith(url, '.mp4') or #strings.endsWith(url, '.webm')}">
+                <div th:if="${post.images != null and not post.images.isEmpty()}" class="my-4">
+                    <div th:each="image : ${post.images}" class="mb-2">
+                        <div th:if="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}">
                             <video controls class="w-full rounded-lg" style="max-height: 500px;">
-                                <source th:src="${url}" type="video/mp4">
+                                <source th:src="${image.url}" type="video/mp4">
                                 Your browser does not support the video tag.
                             </video>
                         </div>
-                        <div th:if="${#strings.endsWith(url, '.png') or #strings.endsWith(url, '.jpg') or #strings.endsWith(url, '.jpeg') or #strings.endsWith(url, '.gif')}">
-                            <img th:src="${url}" alt="Post Image" class="w-full rounded-lg" style="max-height: 500px; object-fit: cover;">
+                        <div th:if="${#strings.endsWith(image.url, '.png') or #strings.endsWith(image.url, '.jpg') or #strings.endsWith(image.url, '.jpeg') or #strings.endsWith(image.url, '.gif')}">
+                            <img th:src="${image.url}" alt="Post Image" class="w-full rounded-lg" style="max-height: 500px; object-fit: cover;">
                         </div>
                     </div>
                 </div>
