@@ -27,66 +27,58 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final UserRepository userRepository;
-    // --- FIX 1: REMOVE JwtAuthenticationFilter from constructor injection ---
-    // private final JwtAuthenticationFilter jwtAuthFilter; // <-- DELETED
 
     @Bean
-    // --- FIX 1: ADD JwtAuthenticationFilter as a method parameter ---
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Keep CSRF disabled for stateless API + simple form login
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                // "/", // <-- REMOVED FROM permitAll() TO PROTECT THE HOME PAGE
                                 "/login",
                                 "/",
                                 "/register",
                                 "/verify-otp",
-                                "/forgot-password", // Add if you create this page
-                                "/reset-password",  // Add if you create this page
+                                "/forgot-password",
+                                "/reset-password",
                                 "/api/auth/**",
-                                "/css/**",       // Allow static resources if needed
-                                "/js/**",        // Allow static resources if needed
-                                "/images/**"     // Allow static resources if needed
+                                "/css/**",
+                                "/js/**",
+                                "/images/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                // --- START: Form Login Configuration (Unchanged) ---
                 .formLogin(form -> form
-                        .loginPage("/login") // Specify custom login page URL
-                        .loginProcessingUrl("/login") // URL where Spring Security handles POST
-                        .defaultSuccessUrl("/", true) // <-- CHANGED to redirect to root
-                        .failureUrl("/login?error") // Redirect back to login page with error param
-                        .permitAll() // Allow access to the login page itself
-                )
-                // --- END: Form Login Configuration ---
-                // --- START: Logout Configuration (Unchanged) ---
-                .logout(logout -> logout
-                        .logoutUrl("/logout") // URL to trigger logout
-                        .logoutSuccessUrl("/login?logout") // Redirect after logout
-                        .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID") // Optional: clear cookies
+                        .loginPage("/login")
+                        .loginProcessingUrl("/login")
+                        .defaultSuccessUrl("/", true)
+                        .failureUrl("/login?error")
                         .permitAll()
                 )
-                // --- END: Logout Configuration ---
+                .logout(logout -> logout
+                        .logoutUrl("/logout")
+                        .logoutSuccessUrl("/login?logout")
+                        .invalidateHttpSession(true)
+                        .deleteCookies("JSESSIONID", "remember-me") // <-- Also delete remember-me on logout
+                        .permitAll()
+                )
 
-                // --- FIX 2: CHANGE Session Management Policy ---
-                // From STATELESS to IF_REQUIRED. This allows sessions for formLogin
-                // but still supports stateless JWT for your API.
+                // --- START: ADD THIS 'REMEMBER ME' BLOCK ---
+                .rememberMe(rememberMe -> rememberMe
+                        .key("your-very-secret-key-to-hash-the-cookie") // Change this to a random string
+                        .tokenValiditySeconds(60 * 60 * 24 * 7) // 7 days
+                        .userDetailsService(userDetailsService()) // The same service used for login
+                )
+                // --- END: 'REMEMBER ME' BLOCK ---
+
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
-
                 .authenticationProvider(authenticationProvider())
-                // Add JWT filter *before* the standard form login filter
-                // This now correctly uses the 'jwtAuthFilter' parameter from the method
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
 
         return http.build();
     }
 
     @Bean
     public UserDetailsService userDetailsService() {
-        // Load user by username OR email
         return username -> userRepository.findByUsernameOrEmail(username, username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }

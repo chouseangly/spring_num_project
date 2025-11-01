@@ -38,5 +38,5 @@ public class Faculty {
     private Set<User> members = new HashSet<>();
 
     @OneToMany(mappedBy = "faculty", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<Event> events = new HashSet<>();
+    private Set<Post> posts = new HashSet<>();
 }

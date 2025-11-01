@@ -3,8 +3,8 @@ package com.example.spring_project_mid.controller;
 import com.example.spring_project_mid.dto.AuthResponse;
 import com.example.spring_project_mid.dto.RegisterRequest;
 import com.example.spring_project_mid.dto.VerifyOtpRequest;
-import com.example.spring_project_mid.model.Event; // <-- IMPORT Event
-import com.example.spring_project_mid.repository.EventRepository; // <-- IMPORT EventRepository
+import com.example.spring_project_mid.model.Post;
+import com.example.spring_project_mid.repository.PostRepository; // <-- IMPORT EventRepository
 import com.example.spring_project_mid.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ import java.util.List; // <-- IMPORT List
 public class AuthViewController {
 
     private final AuthService authService;
-    private final EventRepository eventRepository; // <-- ADD EventRepository
+    private final PostRepository postRepository;
 
     // --- Registration Methods (No Change) ---
     @GetMapping("/register")
@@ -131,10 +131,10 @@ public class AuthViewController {
     public String showHomePage(Model model) { // <-- ADD Model
 
         // Fetch all events, newest first
-        List<Event> events = eventRepository.findAllByOrderByCreatedAtDesc();
+        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
 
         // Add the list to the model so Thymeleaf can access it
-        model.addAttribute("events", events);
+        model.addAttribute("posts", posts);
 
         // This tells Thymeleaf to render the "home.html" template
         return "home";

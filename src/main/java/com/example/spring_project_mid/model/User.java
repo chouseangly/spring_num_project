@@ -72,7 +72,7 @@ public class User implements UserDetails {
 
     // --- Bidirectional Relationships ---
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    private Set<Event> events = new HashSet<>();
+    private Set<Post> events = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Set<Comment> comments = new HashSet<>();

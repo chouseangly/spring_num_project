@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<nav class="bg-white shadow-md" th:fragment="navbar">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between items-center h-16">
+
+            <div class="flex items-center space-x-4">
+                <a th:href="@{/}" class="flex items-center space-x-2">
+                    <span class="inline-block w-8 h-8 bg-red-600 text-white font-bold rounded-full flex items-center justify-center">N</span>
+                    <span class="text-xl font-bold text-red-600 hidden md:block">NUM Events</span>
+                </a>
+<!--                <a th:href="@{/}" class="hidden sm:flex items-center space-x-2 bg-gray-100 rounded-full px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-200">-->
+<!--                    <i class="fas fa-home"></i>-->
+<!--                    <span>Home</span>-->
+<!--                </a>-->
+            </div>
+
+            <div class="flex-1 px-4 lg:px-12">
+                <form th:action="@{/search}" method="get" class="w-full">
+                    <div class="relative">
+                        <span class="absolute left-3 top-2.5 text-gray-400">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="search" name="q" placeholder="Search Events"
+                               class="w-full pl-10 pr-4 py-2 rounded-full border border-gray-300 bg-gray-100 focus:bg-white focus:outline-none focus:ring-2 focus:ring-red-500">
+                    </div>
+                </form>
+            </div>
+
+            <div class="flex items-center space-x-2">
+
+                <div sec:authorize="isAuthenticated()" class="flex items-center space-x-2">
+                    <<a th:href="@{/posts/create}" title="Create Post"
+                        class="w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100">
+                    <i class="fas fa-plus fa-lg"></i>
+                </a>
+                    <a th:href="@{/notifications}" title="Notifications"
+                       class="w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-bell fa-lg"></i>
+                    </a>
+
+                    <a th:href="@{/profile}" class="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100">
+                        <img th:if="${#authentication.principal.avatarUrl != null}"
+                             th:src="${#authentication.principal.avatarUrl}"
+                             alt="Avatar" class="w-8 h-8 rounded-full bg-gray-300 object-cover">
+                        <div th:if="${#authentication.principal.avatarUrl == null}"
+                             class="w-8 h-8 rounded-full bg-gray-300 flex items-center justify-center text-gray-600">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span class="hidden md:block font-semibold text-sm" sec:authentication="name">Username</span>
+                    </a>
+
+                    <form th:action="@{/logout}" method="post" class="ml-2">
+                        <button type_="submit" title="Logout" class="w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100">
+                            <i class="fas fa-sign-out-alt fa-lg"></i>
+                        </button>
+                    </form>
+                </div>
+
+                <div sec:authorize="isAnonymous()" class="flex items-center space-x-2">
+                    <a th:href="@{/login}" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-full hover:bg-red-700">
+                        Login
+                    </a>
+                    <a th:href="@{/register}" class="hidden sm:block px-4 py-2 bg-gray-200 text-gray-800 text-sm font-medium rounded-full hover:bg-gray-300">
+                        Register
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</nav>
+
+</body>
+</html>
