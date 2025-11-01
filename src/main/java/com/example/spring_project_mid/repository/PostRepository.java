@@ -8,6 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List; // <-- Import List
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-    @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments"})
+
+    // --- START: MODIFIED LINE ---
+    // I added "images" to the attributePaths
+    @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images"})
+    // --- END: MODIFIED LINE ---
     List<Post> findAllByOrderByCreatedAtDesc();
 }

@@ -33,6 +33,8 @@ public class PostController {
     }
 
     // --- START: MODIFIED createPost METHOD ---
+    // In: chouseangly/spring_num_project/spring_num_project-main/src/main/java/com/example/spring_project_mid/controller/PostController.java
+
     @PostMapping("/create")
     public String createPost(
             @ModelAttribute Post post,
@@ -41,24 +43,37 @@ public class PostController {
     ) {
         post.setUser(user);
 
-        // --- NEW LOGIC ---
+        // --- START OF FIX ---
+
+        // Get the set that's already on the post object (which is an empty HashSet)
+        Set<Image> images = post.getImages();
+
         // If mediaUrls string is not empty, split it, create Image objects, and add to post
         if (mediaUrls != null && !mediaUrls.isEmpty()) {
             String[] urls = mediaUrls.split(",");
-            Set<Image> images = new HashSet<>();
+
+            // Note: We are no longer creating a new HashSet here.
+
             for (String url : urls) {
                 if (!url.trim().isEmpty()) { // Avoid empty strings
                     Image newImage = new Image();
                     newImage.setUrl(url.trim());
-                    newImage.setPost(post); // Link image to post
+
+                    // CRITICAL: Link the Image back to the Post
+                    newImage.setPost(post);
+
+                    // Add the new image to the *original* set from the post
                     images.add(newImage);
                 }
             }
-            post.setImages(images); // Add the set of images to the post
+            // We DON'T need post.setImages(images); anymore because
+            // we modified the 'images' set we got from the post directly.
         }
-        // --- END NEW LOGIC ---
+        // --- END OF FIX ---
 
-        postRepository.save(post); // This will save the post and cascade-save the new Image objects
+        // This save will now cascade and save the Image objects
+        // because they are in the 'images' set and have their 'post' field set.
+        postRepository.save(post);
         return "redirect:/"; // Redirect to homepage or post detail
     }
     // --- END: MODIFIED createPost METHOD ---
