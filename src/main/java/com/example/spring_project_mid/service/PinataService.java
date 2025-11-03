@@ -1,0 +1,98 @@
+package com.example.spring_project_mid.service;
+
+import com.example.spring_project_mid.dto.PinataResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.client5.http.classic.methods.HttpPost;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
+import org.apache.hc.client5.http.impl.classic.HttpClients;
+import org.apache.hc.client5.http.entity.mime.HttpMimeEntity;
+import org.apache.hc.client5.http.entity.mime.MultipartEntityBuilder;
+import org.apache.hc.core5.http.ContentType;
+import org.apache.hc.core5.http.io.entity.EntityUtils;
+import org.apache.hc.core5.http.io.entity.StringEntity;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+
+@Service
+@Slf4j // Using Slf4j for logging, good practice!
+public class PinataService {
+
+    @Value("${pinata.jwt.token}")
+    private String pinataJwtToken;
+
+    @Value("${pinata.api.url}")
+    private String pinataApiUrl;
+
+    @Value("${ipfs.gateway.url}")
+    private String ipfsGatewayUrl;
+
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    /**
+     * Uploads a file to Pinata and returns the public gateway URL.
+     *
+     * @param file The MultipartFile to upload.
+     * @return The public URL from the Pinata gateway.
+     * @throws IOException          if the file upload or API request fails.
+     * @throws InterruptedException if the thread is interrupted.
+     */
+    public String uploadFileToPinata(MultipartFile file) throws IOException, InterruptedException {
+        log.info("Starting Pinata upload for file: {}", file.getOriginalFilename());
+
+        // 1. Create the HTTP Client and POST Request
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            HttpPost httpPost = new HttpPost(pinataApiUrl);
+
+            // 2. Set the Authorization Header with the JWT Token
+            httpPost.setHeader("Authorization", "Bearer " + pinataJwtToken);
+
+            // 3. Build the Multipart/Form-Data request
+            HttpMimeEntity mimeEntity = MultipartEntityBuilder.create()
+                    .addBinaryBody(
+                            "file", // This "file" name must match what Pinata expects
+                            file.getInputStream(),
+                            ContentType.DEFAULT_BINARY,
+                            file.getOriginalFilename()
+                    )
+                    // You can add Pinata options here if needed, e.g.:
+                    // .addTextBody("pinataOptions", "{\"cidVersion\": 1}")
+                    .build();
+
+            httpPost.setEntity(mimeEntity);
+
+            // 4. Execute the request
+            log.info("Executing POST request to Pinata API...");
+            String responseString = httpClient.execute(httpPost, response -> {
+                log.info("Received response from Pinata. Status: {}", response.getCode());
+                String responseBody = EntityUtils.toString(response.getEntity());
+                if (response.getCode() != 200) {
+                    log.error("Pinata API Error. Status: {}, Body: {}", response.getCode(), responseBody);
+                    throw new IOException("Pinata API returned status " + response.getCode() + ": " + responseBody);
+                }
+                return responseBody;
+            });
+
+            // 5. Parse the JSON response
+            log.info("Pinata response body: {}", responseString);
+            PinataResponse pinataResponse = objectMapper.readValue(responseString, PinataResponse.class);
+            String ipfsHash = pinataResponse.getIpfsHash();
+
+            if (ipfsHash == null || ipfsHash.isEmpty()) {
+                throw new IOException("Failed to parse IpfsHash from Pinata response.");
+            }
+
+            // 6. Construct and return the full gateway URL
+            String gatewayUrl = ipfsGatewayUrl + ipfsHash;
+            log.info("File uploaded successfully. Gateway URL: {}", gatewayUrl);
+            return gatewayUrl;
+
+        } catch (Exception e) {
+            log.error("Error during Pinata upload", e);
+            throw new RuntimeException("Error uploading file to Pinata: " + e.getMessage(), e);
+        }
+    }
+}
