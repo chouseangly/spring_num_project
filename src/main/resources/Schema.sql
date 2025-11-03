@@ -84,3 +84,4 @@ CREATE TABLE images (
                         post_id BIGINT REFERENCES posts(id) ON DELETE CASCADE,
                         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+truncate table images restart identity cascade ;

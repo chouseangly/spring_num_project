@@ -6,8 +6,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.5.7</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
+        <relativePath/> </parent>
     <groupId>com.example</groupId>
     <artifactId>spring_project_Mid</artifactId>
     <version>0.0.1-SNAPSHOT</version>
@@ -29,11 +28,6 @@
     <properties>
         <java.version>17</java.version>
     </properties>
-
-    <!--
-        The <dependencyManagement> section has been REMOVED
-        as it is no longer needed.
-    -->
 
     <dependencies>
         <dependency>
@@ -95,17 +89,10 @@
             <version>4.4.0</version>
         </dependency>
 
-        <!--
-            This is the ONLY dependency you need for httpclient.
-            It already includes the 'mime' classes in this version.
-        -->
         <dependency>
-            <groupId>org.apache.httpcomponents.client5</groupId> <artifactId>httpclient5</artifactId>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
         </dependency>
-
-        <!--
-            The httpclient5-mime dependency has been REMOVED.
-        -->
 
     </dependencies>
 
@@ -139,4 +126,3 @@
     </build>
 
 </project>
-
