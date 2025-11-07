@@ -6,10 +6,21 @@
     <title>Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body>
-<div class="min-h-[90vh] bg-gray-100">
-    <div class="min-h-[90vh] flex">
+<div class="min-h-screen bg-gray-100">
+    <div class="min-h-screen flex">
         <div class="w-full lg:w-1/2 flex items-center justify-center p-8">
             <div class="w-full max-w-md">
                 <div class="bg-white rounded-2xl shadow-xl p-8">
@@ -22,44 +33,44 @@
                     </div>
 
                     <div th:if="${successMessage}"
-                         class="mb-4 p-3 bg-green-100 text-green-700 rounded-lg">
+                         class="mb-4 p-3 bg-green-100 font-semibold text-green-700 rounded-lg">
                         <p th:text="${successMessage}">Success!</p>
                     </div>
                     <div th:if="${param.error}"
-                         class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+                         class="mb-4 p-3 bg-red-100 font-semibold text-red-700 rounded-lg">
                         <p>Invalid email or password.</p>
                     </div>
                     <div th:if="${param.logout}"
-                         class="mb-4 p-3 bg-blue-100 text-blue-700 rounded-lg">
+                         class="mb-4 p-3 bg-blue-100 font-semibold text-blue-700 rounded-lg">
                         <p>You have been logged out.</p>
                     </div>
 
-                    <form th:action="@{/login}" method="post">
+                    <form th:action="@{/login}" method="post" class="space-y-6">
 
-                        <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                            <div class="relative">
-                                <input type="email" name="username" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
+                        <div>
+                            <label class="block text-sm/6 font-medium text-gray-900">Email Address</label>
+                            <div class="mt-2 relative">
+                                <input type="email" name="username" class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-base text-gray-900 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 sm:text-sm/6 transition-colors duration-200 ease-in-out"
                                        placeholder="you@example.com" required/>
                                 <i class="fas fa-envelope absolute right-2 top-4 w-6 h-6 text-gray-400"></i>
                             </div>
                         </div>
 
-                        <div class="mb-6">
-                            <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                            <div class="relative">
-                                <input type="password" name="password" class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
+                        <div>
+                            <label class="block text-sm/6 font-medium text-gray-900">Password</label>
+                            <div class="mt-2">
+                                <input type="password" name="password" class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-base text-gray-900 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 sm:text-sm/6 transition-colors duration-200 ease-in-out"
                                        placeholder="••••••••" required/>
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-between mb-6">
-                            <label class="flex items-center text-sm text-gray-700">
-                                <input type="checkbox" name="remember-me" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500">
+                        <div class="flex items-center justify-between">
+                            <label class="flex items-center text-sm text-gray-900">
+                                <input type="checkbox" name="remember-me" class="w-4 h-4 text-red-600 border-gray-300 rounded focus:ring-red-500 cursor-pointer">
                                 <span class="ml-2">Remember me</span>
                             </label>
 
-                            <a th:href="@{/forgot-password}" class="text-sm text-red-600 hover:text-red-700 font-semibold focus:outline-none">
+                            <a th:href="@{/forgot-password}" class="text-sm text-red-600 hover:text-red-700 font-semibold focus:outline-none cursor-pointer">
                                 Forgot Password?
                             </a>
                         </div>
@@ -70,7 +81,7 @@
 
                         <p class="mt-6 text-center text-gray-600">
                             Don't have an account?
-                            <a th:href="@{/register}" class="ml-1 text-red-600 hover:text-red-700 font-semibold focus:outline-none">
+                            <a th:href="@{/register}" class="ml-1 text-red-600 hover:text-red-700 font-semibold focus:outline-none cursor-pointer">
                                 Sign up
                             </a>
                         </p>
@@ -83,8 +94,13 @@
              style="background-image: url('https://academics-bucket-sj19asxm-prod.s3.ap-southeast-1.amazonaws.com/8c724f2a-32b5-4b3d-80b3-14c4b365388d/d64e6f44-6806-4b80-987f-735e6bc9ad63.jpg')">
             <div class="h-full bg-black bg-opacity-50 flex items-center justify-center">
                 <div class="text-center text-white px-12">
-                    <h2 class="text-4xl font-bold mb-6">Welcome to NUM</h2>
-                    <p class="text-xl">This platform used for NUM Events</p>
+                    <h2 class="text-4xl font-bold mb-6 [text-wrap:balance]">
+                        Welcome to the NUM Event Portal
+                    </h2>
+                    <p class="text-xl text-gray-100">
+                        This is your central hub for connecting with the NUM community.
+                        Discover upcoming workshops, seminars, and social gatherings.
+                    </p>
                 </div>
             </div>
         </div>

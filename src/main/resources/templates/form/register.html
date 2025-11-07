@@ -6,6 +6,17 @@
     <title>Create Account</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body>
 <div class="min-h-screen bg-gray-100">
@@ -21,59 +32,59 @@
                         <p class="text-gray-600 mt-2">Get started with your account</p>
                     </div>
 
-                    <form th:action="@{/register}" method="post" th:object="${registerRequest}">
+                    <form th:action="@{/register}" method="post" th:object="${registerRequest}" class="space-y-6">
 
                         <div th:if="${#fields.hasGlobalErrors()}"
-                             class="mb-4 p-3 bg-red-100 text-red-700 rounded-lg">
+                             class="mb-4 p-3 bg-red-100 font-semibold text-red-700 rounded-lg">
                             <p th:each="err : ${#fields.globalErrors()}" th:text="${err}">Global error message</p>
                         </div>
-                        <div class="mb-6">
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Username</label>
-                            <div class="relative">
+                            <div class="mt-2">
                                 <input type="text" th:field="*{username}"
-                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
-                                       placeholder="JohnDoe"
+                                       class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-base text-gray-900 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 sm:text-sm/6 transition-colors duration-200 ease-in-out"
+                                       placeholder="You username"
                                        th:classappend="${#fields.hasErrors('username')} ? 'border-red-500' : ''"/>
                             </div>
                             <p th:if="${#fields.hasErrors('username')}" th:errors="*{username}"
-                               class="mt-2 text-sm text-red-600">Error</p>
+                               class="mt-2 font-semibold text-sm text-red-600">Error</p>
                         </div>
 
-                        <div class="mb-6">
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                            <div class="relative">
+                            <div class="mt-2 relative">
                                 <input type="email" th:field="*{email}"
-                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
-                                       placeholder="you@example.com"
+                                       class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-base text-gray-900 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 sm:text-sm/6 transition-colors duration-200 ease-in-out"
+                                       placeholder="exmaple@example.com"
                                        th:classappend="${#fields.hasErrors('email')} ? 'border-red-500' : ''"/>
                                 <i class="fas fa-envelope absolute right-2 top-4 w-6 h-6 text-gray-400"></i>
                             </div>
                             <p th:if="${#fields.hasErrors('email')}" th:errors="*{email}"
-                               class="mt-2 text-sm text-red-600">Error</p>
+                               class="mt-2 font-semibold text-sm text-red-600">Error</p>
                         </div>
 
-                        <div class="mb-6">
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                            <div class="relative">
+                            <div class="mt-2">
                                 <input type="password" th:field="*{password}"
-                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
+                                       class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-base text-gray-900 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 sm:text-sm/6 transition-colors duration-200 ease-in-out"
                                        placeholder="••••••••"
                                        th:classappend="${#fields.hasErrors('password')} ? 'border-red-500' : ''"/>
                             </div>
                             <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}"
-                               class="mt-2 text-sm text-red-600">Error</p>
+                               class="mt-2 font-semibold text-sm text-red-600">Error</p>
                         </div>
 
-                        <div class="mb-6">
+                        <div>
                             <label class="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
-                            <div class="relative">
+                            <div class="mt-2">
                                 <input type="password" th:field="*{confirmPassword}"
-                                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-600 focus:border-transparent transition-colors"
+                                       class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-base text-gray-900 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 sm:text-sm/6 transition-colors duration-200 ease-in-out"
                                        placeholder="••••••••"
                                        th:classappend="${#fields.hasErrors('confirmPassword')} ? 'border-red-500' : ''"/>
                             </div>
                             <p th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"
-                               class="mt-2 text-sm text-red-600">Error</p>
+                               class="mt-2 font-semibold text-sm text-red-600">Error</p>
                         </div>
 
                         <button type="submit"
@@ -83,7 +94,7 @@
 
                         <p class="mt-6 text-center text-gray-600">
                             Already have an account?
-                            <a th:href="@{/login}" class="ml-1 text-red-600 hover:text-red-700 font-semibold focus:outline-none">
+                            <a th:href="@{/login}" class="ml-1 text-red-600 hover:text-red-700 font-semibold focus:outline-none cursor-pointer">
                                 Sign in
                             </a>
                         </p>
@@ -96,8 +107,13 @@
              style="background-image: url('https://academics-bucket-sj19asxm-prod.s3.ap-southeast-1.amazonaws.com/8c724f2a-32b5-4b3d-80b3-14c4b365388d/d64e6f44-6806-4b80-987f-735e6bc9ad63.jpg')">
             <div class="h-full bg-black bg-opacity-50 flex items-center justify-center">
                 <div class="text-center text-white px-12">
-                    <h2 class="text-4xl font-bold mb-6">Welcome to NUM</h2>
-                    <p class="text-xl">This platform used for NUM Events</p>
+                    <h2 class="text-4xl font-bold mb-6 [text-wrap:balance]">
+                        Welcome to the NUM Event Portal
+                    </h2>
+                    <p class="text-xl text-gray-100">
+                        This is your central hub for connecting with the NUM community.
+                        Discover upcoming workshops, seminars, and social gatherings.
+                    </p>
                 </div>
             </div>
         </div>
