@@ -5,12 +5,13 @@
     <title>Home - NUM Event Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif']
+                        sans: ['Inter', 'Battambang', 'sans-serif']
                     }
                 }
             }
@@ -78,22 +79,52 @@
 
                             <div class="relative"
                                  th:classappend="${imageCount > 1 ? 'aspect-square' : 'max-h-[500px]'}">
-                                <div th:if="${imageCount > 6 and iterStat.count == 6}"
-                                     class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10 cursor-pointer">
-                                    <span class="text-white text-3xl font-bold"
-                                          th:text="'+' + (${imageCount} - 6)">+1</span>
-                                </div>
                                 <div th:if="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
                                     <video class="w-full h-full"
                                            th:classappend="${imageCount == 1 ? 'object-contain bg-black' : 'object-cover'}" controls>
                                         <source th:src="${image.url}" type="video/mp4">
                                     </video>
+                                    <a th:href="${image.url}"
+                                       class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 text-white text-4xl"
+                                       th:classappend="${imageCount > 6 and iterStat.count == 6} ? 'opacity-100' : 'opacity-0 hover:opacity-100 hover:bg-opacity-20 transition-opacity'"
+                                       th:attr="data-fancybox='post-gallery-' + ${post.id}, data-caption=${post.title}"
+                                       title="View larger">
+
+                                        <div th:if="${imageCount > 6 and iterStat.count == 6}"
+                                             class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10">
+                                            <span class="text-white text-3xl font-bold"
+                                                  th:text="'+' + (${imageCount} - 6)">+1</span>
+                                        </div>
+                                        <i th:if="${imageCount <= 6 or iterStat.count != 6}" class="fas fa-expand"></i>
+                                    </a>
                                 </div>
+
                                 <div th:unless="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
-                                    <img th:src="${image.url}" alt="Post Image" class="w-full h-full"
-                                         th:classappend="${imageCount == 1 ? 'object-contain bg-gray-100' : 'object-cover'}">
+                                    <a th:href="${image.url}"
+                                       class="relative block w-full h-full"
+                                       th:attr="data-fancybox='post-gallery-' + ${post.id}, data-caption=${post.title}">
+
+                                        <img th:src="${image.url}" alt="Post Image" class="w-full h-full"
+                                             th:classappend="${imageCount == 1 ? 'object-contain bg-gray-100' : 'object-cover'}">
+
+                                        <div th:if="${imageCount > 6 and iterStat.count == 6}"
+                                             class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10 cursor-pointer">
+                                            <span class="text-white text-3xl font-bold"
+                                                  th:text="'+' + (${imageCount} - 6)">+1</span>
+                                        </div>
+                                    </a>
                                 </div>
                             </div>
+                        </th:block>
+                    </div>
+
+                    <div class="hidden">
+                        <th:block th:each="image, iterStat : ${post.images}"
+                                  th:if="${imageCount > 6 and iterStat.count > 6}">
+                            <a th:href="${image.url}"
+                               th:attr="data-fancybox='post-gallery-' + ${post.id}, data-caption=${post.title}">
+                                Image <span th:text="${iterStat.count}"></span>
+                            </a>
                         </th:block>
                     </div>
                 </div>
@@ -108,6 +139,7 @@
                         See more
                     </button>
                 </div>
+
                 <div class="flex items-center text-gray-500 font-medium text-sm">
                     <a href="#" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100">
                         <i class="fas fa-arrow-up mr-1"></i>
@@ -134,10 +166,29 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+
 <script th:inline="javascript">
     document.addEventListener("DOMContentLoaded", function() {
 
-        // --- 1. TIMESTAMP LOGIC (No change) ---
+        // --- (Fancybox initialization - no changes) ---
+        try {
+            Fancybox.bind("[data-fancybox]", {
+                groupAll: false,
+                loop: true,
+                Toolbar: {
+                    display: {
+                        left: [],
+                        middle: [],
+                        right: ["close"],
+                    },
+                },
+            });
+            console.log("Fancybox initialized successfully.");
+        } catch (e) {
+            console.error("Fancybox initialization failed:", e);
+        }
+
         function formatTimeAgo(dateString) {
             if (!dateString) return "";
             const date = new Date(dateString);
@@ -175,8 +226,6 @@
             }
         });
 
-
-        // --- 2. LINKIFY LOGIC (No change) ---
         function linkify(plainText) {
             if (!plainText) return "";
             let escapedText = plainText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -195,41 +244,24 @@
             }
         });
 
-
-        // --- 3. NEW "SEE MORE" LOGIC ---
-
-        /**
-         * Sets up truncation for a content block and its "See more" button.
-         * @param {HTMLElement} wrapper - The container (.post-content-wrapper)
-         * @param {string} contentSelector - The selector for the text (.post-content)
-         * @param {number} maxHeight - The max pixel height before truncating
-         */
         function setupTruncation(wrapper, contentSelector, maxHeight) {
             const contentElement = wrapper.querySelector(contentSelector);
             const button = wrapper.querySelector('.see-more-btn');
 
             if (!contentElement || !button) return;
 
-            // We must check scrollHeight *after* content is rendered
             if (contentElement.scrollHeight > maxHeight) {
 
-                // 1. Truncate the content
                 contentElement.style.maxHeight = `${maxHeight}px`;
                 contentElement.style.overflow = 'hidden';
-
-                // 2. Show the "See more" button
                 button.classList.remove('hidden');
 
-                // 3. Add click listener to toggle
                 button.addEventListener('click', () => {
-                    // Check if content is currently truncated (by checking if maxHeight style is set)
                     if (contentElement.style.maxHeight) {
-                        // Expand it
                         contentElement.style.maxHeight = null;
                         contentElement.style.overflow = null;
                         button.textContent = 'See less';
                     } else {
-                        // Collapse it
                         contentElement.style.maxHeight = `${maxHeight}px`;
                         contentElement.style.overflow = 'hidden';
                         button.textContent = 'See more';
@@ -238,15 +270,11 @@
             }
         }
 
-        // Apply truncation to all post titles
         document.querySelectorAll('.post-title-wrapper').forEach(wrapper => {
-            // Approx 3 lines of title
             setupTruncation(wrapper, '.post-title-content', 96); // 96px
         });
 
-        // Apply truncation to all post descriptions
         document.querySelectorAll('.post-content-wrapper').forEach(wrapper => {
-            // Approx 10 lines of text
             setupTruncation(wrapper, '.post-content', 240); // 240px
         });
 
