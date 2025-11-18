@@ -5,6 +5,18 @@
     <title>Home - NUM Event Manager</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Battambang', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body class="bg-gray-100">
 
@@ -37,44 +49,110 @@
                     <span>Posted by </span>
                     <span class="font-medium text-gray-700 ml-1" th:text="${post.user.username}">Username</span>
                     <span class="mx-2">&middot;</span>
-                    <span th:text="${#temporals.format(post.createdAt, 'dd-MMM-yyyy HH:mm')}">1 Jan 2025 10:30</span>
+
+                    <span class="relative-time cursor-pointer"
+                          th:data-timestamp="${post.createdAt}"
+                          th:data-full-date="${#temporals.format(post.createdAt, 'dd-MMM-yyyy HH:mm')}"
+                          th:title="'Click to toggle format'">
+                    </span>
                 </div>
 
-                <h3 class="text-2xl font-bold text-gray-900 mb-3">
-                    <a th:if="${post.linkUrl != null and not #strings.isEmpty(post.linkUrl)}" th:href="${post.linkUrl}" target="_blank" class="hover:text-red-600" th:text="${post.title}">Post Title (Link)</a>
-                    <a th:if="${post.linkUrl == null or #strings.isEmpty(post.linkUrl)}" href="#" class="hover:text-red-600" th:text="${post.title}">Post Title (Text/Media)</a>
-                </h3>
+                <div classm="post-title-wrapper">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3 post-title-content">
+                        <a th:if="${post.linkUrl != null and not #strings.isEmpty(post.linkUrl)}" th:href="${post.linkUrl}" target="_blank" class="hover:text-red-600" th:text="${post.title}">Post Title (Link)</a>
+                        <a th:if="${post.linkUrl == null or #strings.isEmpty(post.linkUrl)}" href="#" class="hover:text-red-600" th:text="${post.title}">Post Title (Text/Media)</a>
+                    </h3>
+                    <button class="see-more-btn hidden text-sm font-semibold text-blue-600 hover:underline mb-3">
+                        See more
+                    </button>
+                </div>
+                <div th:if="${post.images != null and not post.images.isEmpty()}" class="my-4 rounded-lg overflow-hidden"
+                     th:with="imageCount=${#lists.size(post.images)}">
+                    <div class="grid gap-1"
+                         th:classappend="${imageCount == 1 ? 'grid-cols-1' : (
+                                            imageCount == 2 ? 'grid-cols-2' : (
+                                            imageCount == 3 ? 'grid-cols-3' : (
+                                            imageCount == 4 ? 'grid-cols-2' : 'grid-cols-3')))}">
 
-                <div th:if="${post.images != null and not post.images.isEmpty()}" class="my-4">
-                    <div th:each="image : ${post.images}" class="mb-2">
-                        <div th:if="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}">
-                            <video controls class="w-full rounded-lg" style="max-height: 500px;">
-                                <source th:src="${image.url}" type="video/mp4">
-                                Your browser does not support the video tag.
-                            </video>
-                        </div>
-                        <div th:if="${#strings.endsWith(image.url, '.png') or #strings.endsWith(image.url, '.jpg') or #strings.endsWith(image.url, '.jpeg') or #strings.endsWith(image.url, '.gif')}">
-                            <img th:src="${image.url}" alt="Post Image" class="w-full rounded-lg" style="max-height: 500px; object-fit: cover;">
-                        </div>
+                        <th:block th:each="image, iterStat : ${post.images}"
+                                  th:if="${imageCount <= 4 or iterStat.count <= 6}">
+
+                            <div class="relative"
+                                 th:classappend="${imageCount > 1 ? 'aspect-square' : 'max-h-[500px]'}">
+                                <div th:if="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
+                                    <video class="w-full h-full"
+                                           th:classappend="${imageCount == 1 ? 'object-contain bg-black' : 'object-cover'}" controls>
+                                        <source th:src="${image.url}" type="video/mp4">
+                                    </video>
+                                    <a th:href="${image.url}"
+                                       class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 text-white text-4xl"
+                                       th:classappend="${imageCount > 6 and iterStat.count == 6} ? 'opacity-100' : 'opacity-0 hover:opacity-100 hover:bg-opacity-20 transition-opacity'"
+                                       th:attr="data-fancybox='post-gallery-' + ${post.id}, data-caption=${post.title}"
+                                       title="View larger">
+
+                                        <div th:if="${imageCount > 6 and iterStat.count == 6}"
+                                             class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10">
+                                            <span class="text-white text-3xl font-bold"
+                                                  th:text="'+' + (${imageCount} - 6)">+1</span>
+                                        </div>
+                                        <i th:if="${imageCount <= 6 or iterStat.count != 6}" class="fas fa-expand"></i>
+                                    </a>
+                                </div>
+
+                                <div th:unless="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
+                                    <a th:href="${image.url}"
+                                       class="relative block w-full h-full"
+                                       th:attr="data-fancybox='post-gallery-' + ${post.id}, data-caption=${post.title}">
+
+                                        <img th:src="${image.url}" alt="Post Image" class="w-full h-full"
+                                             th:classappend="${imageCount == 1 ? 'object-contain bg-gray-100' : 'object-cover'}">
+
+                                        <div th:if="${imageCount > 6 and iterStat.count == 6}"
+                                             class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10 cursor-pointer">
+                                            <span class="text-white text-3xl font-bold"
+                                                  th:text="'+' + (${imageCount} - 6)">+1</span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </th:block>
+                    </div>
+
+                    <div class="hidden">
+                        <th:block th:each="image, iterStat : ${post.images}"
+                                  th:if="${imageCount > 6 and iterStat.count > 6}">
+                            <a th:href="${image.url}"
+                               th:attr="data-fancybox='post-gallery-' + ${post.id}, data-caption=${post.title}">
+                                Image <span th:text="${iterStat.count}"></span>
+                            </a>
+                        </th:block>
                     </div>
                 </div>
-                <p th:if="${post.content != null and not #strings.isEmpty(post.content)}" class="text-gray-700 mb-4" th:text="${post.content}">
-                    Post content preview goes here...
-                </p>
+
+                <div class="post-content-wrapper">
+                    <p th:if="${post.content != null and not #strings.isEmpty(post.content)}"
+                       class="text-gray-700 mb-2 whitespace-pre-wrap post-content"
+                       th:data-content="${post.content}">
+                    </p>
+                    <button th:if="${post.content != null and not #strings.isEmpty(post.content)}"
+                            class="see-more-btn hidden text-sm font-semibold text-blue-600 hover:underline mb-4">
+                        See more
+                    </button>
+                </div>
 
                 <div class="flex items-center text-gray-500 font-medium text-sm">
-                    <a href="#" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100">
-                        <i class="fas fa-arrow-up mr-1"></i>
-                        <span>Vote</span>
+                    <a href="#" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 mr-2">
+                        <i class="far fa-heart mr-2"></i>
+                        <span>Like</span>
                     </a>
                     <span class="mx-2 font-bold text-gray-700" th:text="${post.votes.size()}">0</span>
-                    <a href="#" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100">
-                        <i class="fas fa-arrow-down"></i>
-                    </a>
-
-                    <a href="#" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 ml-4">
+                    <a href="#" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 ml-2">
                         <i class="fas fa-comment mr-2"></i>
                         <span th:text="${post.comments.size()} + ' Comments'">0 Comments</span>
+                    </a>
+                    <a href="#" sec:authorize="isAuthenticated()" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 ml-4">
+                        <i class="far fa-bookmark mr-2"></i>
+                        <span>Save</span>
                     </a>
                 </div>
             </div>
@@ -89,5 +167,119 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+
+<script th:inline="javascript">
+    document.addEventListener("DOMContentLoaded", function() {
+
+        // --- (Fancybox initialization - no changes) ---
+        try {
+            Fancybox.bind("[data-fancybox]", {
+                groupAll: false,
+                loop: true,
+                Toolbar: {
+                    display: {
+                        left: [],
+                        middle: [],
+                        right: ["close"],
+                    },
+                },
+            });
+            console.log("Fancybox initialized successfully.");
+        } catch (e) {
+            console.error("Fancybox initialization failed:", e);
+        }
+
+        function formatTimeAgo(dateString) {
+            if (!dateString) return "";
+            const date = new Date(dateString);
+            const now = new Date();
+            const seconds = Math.round((now - date) / 1000);
+            const minutes = Math.round(seconds / 60);
+            const hours = Math.round(seconds / 3600);
+            if (seconds < 60) return "just now";
+            if (minutes < 60) return minutes + (minutes === 1 ? " min ago" : " mins ago");
+            if (hours < 24) return hours + (hours === 1 ? " hr ago" : " hrs ago");
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
+
+        document.querySelectorAll('.relative-time').forEach(span => {
+            const isoTimestamp = span.dataset.timestamp;
+            const fullDate = span.dataset.fullDate;
+            if (isoTimestamp && fullDate) {
+                const timeAgo = formatTimeAgo(isoTimestamp);
+                span.dataset.timeAgo = timeAgo;
+                span.dataset.isTimeAgo = 'true';
+                span.textContent = timeAgo;
+                span.addEventListener('click', function() {
+                    if (this.dataset.isTimeAgo === 'true') {
+                        this.textContent = fullDate;
+                        this.dataset.isTimeAgo = 'false';
+                    } else {
+                        this.textContent = this.dataset.timeAgo;
+                        this.dataset.isTimeAgo = 'true';
+                    }
+                });
+            } else if (fullDate) {
+                span.textContent = fullDate;
+            } else {
+                span.textContent = "Invalid date";
+            }
+        });
+
+        function linkify(plainText) {
+            if (!plainText) return "";
+            let escapedText = plainText.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])|(\bwww\.[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+            return escapedText.replace(urlRegex, function(url) {
+                let href = url;
+                if (url.startsWith('www.')) href = 'http://' + url;
+                return `<a href="${href}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline hover:text-blue-800">${url}</a>`;
+            });
+        }
+
+        document.querySelectorAll('.post-content').forEach(p => {
+            const rawContent = p.dataset.content;
+            if (rawContent) {
+                p.innerHTML = linkify(rawContent);
+            }
+        });
+
+        function setupTruncation(wrapper, contentSelector, maxHeight) {
+            const contentElement = wrapper.querySelector(contentSelector);
+            const button = wrapper.querySelector('.see-more-btn');
+
+            if (!contentElement || !button) return;
+
+            if (contentElement.scrollHeight > maxHeight) {
+
+                contentElement.style.maxHeight = `${maxHeight}px`;
+                contentElement.style.overflow = 'hidden';
+                button.classList.remove('hidden');
+
+                button.addEventListener('click', () => {
+                    if (contentElement.style.maxHeight) {
+                        contentElement.style.maxHeight = null;
+                        contentElement.style.overflow = null;
+                        button.textContent = 'See less';
+                    } else {
+                        contentElement.style.maxHeight = `${maxHeight}px`;
+                        contentElement.style.overflow = 'hidden';
+                        button.textContent = 'See more';
+                    }
+                });
+            }
+        }
+
+        document.querySelectorAll('.post-title-wrapper').forEach(wrapper => {
+            setupTruncation(wrapper, '.post-title-content', 96); // 96px
+        });
+
+        document.querySelectorAll('.post-content-wrapper').forEach(wrapper => {
+            setupTruncation(wrapper, '.post-content', 240); // 240px
+        });
+
+    });
+</script>
 </body>
 </html>

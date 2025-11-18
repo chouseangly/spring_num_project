@@ -22,7 +22,6 @@ public class JwtService {
     private Algorithm algorithm;
     private JWTVerifier verifier;
 
-    // Use PostConstruct to initialize algorithm and verifier after secretKey is injected
     @jakarta.annotation.PostConstruct
     private void init() {
         this.algorithm = Algorithm.HMAC256(secretKey);

@@ -42,11 +42,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             final String jwt = authHeader.substring(7); // After "Bearer "
             final String username = jwtService.getUsernameFromToken(jwt);
 
-            // If user is not already authenticated
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-                // If token is valid, set the authentication in the context
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null, // We don't have credentials
@@ -56,7 +54,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
         } catch (Exception e) {
-            // Token is invalid
             logger.warn("Cannot set user authentication: {}", e);
         }
 

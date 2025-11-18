@@ -30,6 +30,9 @@ public class User implements UserDetails {
     @Column(name = "username", length = 50, unique = true, nullable = false)
     private String username;
 
+    @Column(name = "display_name", length = 100)
+    private String displayName;
+
     @Column(name = "email", length = 100, unique = true, nullable = false)
     private String email;
 
@@ -72,7 +75,6 @@ public class User implements UserDetails {
 
     // --- Bidirectional Relationships ---
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
-    // --- RENAME 'events' to 'posts' ---
     private Set<Post> posts = new HashSet<>();
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
@@ -87,13 +89,12 @@ public class User implements UserDetails {
     // --- UserDetails Methods (for Spring Security) ---
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // We prefix with "ROLE_" as required by Spring Security
         return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override
     public String getUsername() {
-        return username; // Or email, depending on login preference
+        return username;
     }
 
     @Override
