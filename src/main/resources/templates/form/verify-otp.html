@@ -74,10 +74,8 @@
 
     otpInputs.forEach((input, index) => {
         input.addEventListener('input', (e) => {
-            // Allow only digits
             input.value = input.value.replace(/[^0-9]/g, '');
 
-            // Move to next input if a digit is entered
             if (input.value && index < otpInputs.length - 1) {
                 otpInputs[index + 1].focus();
             }
@@ -85,14 +83,12 @@
         });
 
         input.addEventListener('keydown', (e) => {
-            // Move to previous input on backspace if current input is empty
             if (e.key === 'Backspace' && !input.value && index > 0) {
                 otpInputs[index - 1].focus();
                 updateFullOtp();
             }
         });
 
-        // Handle paste
         input.addEventListener('paste', (e) => {
             e.preventDefault();
             const pasteData = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
@@ -102,11 +98,10 @@
                 otpInputs[index + i].value = pasteData[i];
             }
 
-            // Focus the next empty input or the last one
             const nextFocusIndex = Math.min(index + pasteLength, otpInputs.length - 1);
             otpInputs[nextFocusIndex].focus();
 
-            updateFullOtp(); // Update after pasting
+            updateFullOtp();
         });
     });
 
@@ -116,21 +111,14 @@
             combinedOtp += input.value;
         });
         fullOtpInput.value = combinedOtp;
-        // console.log("Combined OTP:", fullOtpInput.value); // For debugging
     }
 
-    // Ensure the full OTP is updated before form submission
     otpForm.addEventListener('submit', (e) => {
         updateFullOtp();
-        // Basic check if all inputs are filled (optional, as 'required' handles this)
         if (fullOtpInput.value.length !== otpInputs.length) {
-            // console.error("OTP is not complete.");
-            // Optionally add user feedback here
-            // e.preventDefault(); // Prevent submission if needed
         }
     });
 
-    // Initialize focus on the first input
     if(otpInputs.length > 0) {
         otpInputs[0].focus();
     }

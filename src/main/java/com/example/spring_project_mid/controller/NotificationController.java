@@ -20,10 +20,9 @@ public class NotificationController {
     @GetMapping("/notifications")
     public String showNotifications(@AuthenticationPrincipal User user, Model model) {
 
-        // This method now exists in your repository
         List<Notification> notifications = notificationRepository.findByUserOrderByCreatedAtDesc(user);
         model.addAttribute("notifications", notifications);
 
-        return "notifications"; // Renders templates/notifications.html
+        return "notifications";
     }
 }

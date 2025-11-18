@@ -36,12 +36,18 @@ public class AuthViewController {
     private final UserRepository userRepository;
     private final PinataService pinataService;
 
+    /**
+     * Shows the registration form.
+     */
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
         model.addAttribute("registerRequest", new RegisterRequest());
         return "form/register";
     }
 
+    /**
+     * Processes the registration form submission.
+     */
     @PostMapping("/register")
     public String processRegistration(
             @Valid @ModelAttribute("registerRequest") RegisterRequest registerRequest,
@@ -74,6 +80,9 @@ public class AuthViewController {
         return "redirect:/verify-otp";
     }
 
+    /**
+     * Shows the OTP verification form.
+     */
     @GetMapping("/verify-otp")
     public String showVerifyOtpForm(@RequestParam("email") String email, Model model) {
         VerifyOtpRequest verifyOtpRequest = new VerifyOtpRequest();
@@ -85,6 +94,9 @@ public class AuthViewController {
         return "form/verify-otp";
     }
 
+    /**
+     * Processes the OTP verification form submission.
+     */
     @PostMapping("/verify-otp")
     public String processOtpVerification(
             @Valid @ModelAttribute("verifyOtpRequest") VerifyOtpRequest verifyOtpRequest,
@@ -109,13 +121,18 @@ public class AuthViewController {
         }
     }
 
+    /**
+     * Shows the login form.
+     */
     @GetMapping("/login")
     public String showLoginForm(Model model) {
-        // ... (no change)
         model.addAttribute("successMessage", model.getAttribute("successMessage"));
         return "form/login";
     }
 
+    /**
+     * Displays the authenticated user's profile page.
+     */
     @GetMapping("/profile")
     public String showProfilePage(Model model) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -131,9 +148,11 @@ public class AuthViewController {
         return "profile";
     }
 
+    /**
+     * Displays the home page with a list of posts.
+     */
     @GetMapping("/")
     public String showHomePage(Model model) {
-        // ... (no change)
         List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
         model.addAttribute("posts", posts);
         return "home";
@@ -144,9 +163,8 @@ public class AuthViewController {
      */
     @GetMapping("/profile/edit")
     public String showEditProfileForm(Model model, @AuthenticationPrincipal User user) {
-        // Add the currently authenticated user to the model
         model.addAttribute("user", user);
-        return "form/edit-profile"; // Renders templates/form/edit-profile.html
+        return "form/edit-profile";
     }
 
     /**
@@ -169,7 +187,6 @@ public class AuthViewController {
                 user.setAvatarUrl(avatarUrl);
             }
 
-            // 3. Save the user
             userRepository.save(user);
 
             redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");

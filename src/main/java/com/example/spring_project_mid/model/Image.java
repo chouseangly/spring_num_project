@@ -19,7 +19,7 @@ public class Image {
     private Long id;
 
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String url; // This will store the gateway.pinata.cloud/... URL
+    private String url;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "post_id", nullable = false)

@@ -82,7 +82,7 @@ public class AuthService {
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        User user = (User) authentication.getPrincipal(); // Get the authenticated user
+        User user = (User) authentication.getPrincipal();
 
         if (!user.isEnabled()) {
             throw new RuntimeException("Account not verified. Please check your email for OTP.");
@@ -106,7 +106,6 @@ public class AuthService {
         user.setResetTokenExpiryTime(LocalDateTime.now().plusHours(1));
         userRepository.save(user);
 
-        // !! IMPORTANT: Change this URL to your frontend application's URL
         String resetLink = "http://your-frontend-url/reset-password?token=" + token;
         emailService.sendPasswordResetEmail(email, resetLink);
     }

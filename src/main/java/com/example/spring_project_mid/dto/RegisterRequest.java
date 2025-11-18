@@ -19,7 +19,6 @@ public class RegisterRequest {
     @Size(min = 8, max = 50)
     private String password;
 
-    // --- ADD THIS FIELD ---
     @NotEmpty
     private String confirmPassword;
 }

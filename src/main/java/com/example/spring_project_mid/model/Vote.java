@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Entity
 @Table(name = "votes", uniqueConstraints = {
-        // --- FIX: Change 'event_id' to 'post_id' ---
         @UniqueConstraint(columnNames = {"post_id", "user_id"})
 })
 public class Vote {
@@ -22,7 +21,6 @@ public class Vote {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    // --- FIX: Change 'event_id' to 'post_id' ---
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;
 
@@ -31,7 +29,7 @@ public class Vote {
     private User user;
 
     @Column(name = "vote_type", nullable = false)
-    private Integer voteType; // 1 for upvote, -1 for downvote
+    private Integer voteType;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

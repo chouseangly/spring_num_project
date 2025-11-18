@@ -7,24 +7,23 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .tab-button.active {
-            border-bottom: 2px solid #ef4444; /* Tailwind red-500 */
+            border-bottom: 2px solid #ef4444;
             color: #ef4444;
         }
         .file-upload-box {
-            border: 2px dashed #d1d5db; /* Tailwind gray-300 */
-            background-color: #f9fafb; /* Tailwind gray-50 */
+            border: 2px dashed #d1d5db;
+            background-color: #f9fafb;
             transition: all 0.2s ease-in-out;
         }
         .file-upload-box.drag-over {
-            border-color: #ef4444; /* Tailwind red-500 */
-            background-color: #fef2f2; /* Tailwind red-50 */
+            border-color: #ef4444;
+            background-color: #fef2f2;
         }
         .upload-error {
-            background-color: #ef4444; /* red-500 */
+            background-color: #ef4444;
             color: white;
         }
 
-        /* --- START: NEW STYLES FOR REMOVE BUTTON --- */
         .preview-remove-btn {
             position: absolute;
             top: 0.25rem;
@@ -47,9 +46,8 @@
             padding-bottom: 1px;
         }
         .preview-remove-btn:hover {
-            background-color: rgba(239, 68, 68, 0.9); /* hover:bg-red-500/90 */
+            background-color: rgba(239, 68, 68, 0.9);
         }
-        /* --- END: NEW STYLES --- */
     </style>
     <script>
         tailwind.config = {
@@ -129,7 +127,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // --- START: Definitions ---
         const titleInput = document.getElementById('title');
         const titleCharCount = document.getElementById('titleCharCount');
         const postSubmitButton = document.getElementById('postSubmitButton');
@@ -163,13 +160,10 @@
 
         /**
          * Use a Map to store AbortControllers for in-progress uploads.
-         * Key: previewId (string), Value: AbortController
          */
         const activeUploads = new Map();
-        // --- END: Definitions ---
 
-
-        // --- START: Event Listeners ---
+        // Event Listeners ---
         titleInput.addEventListener('input', updateCharCount);
         textTab.addEventListener('click', () => switchTab('text'));
         mediaTab.addEventListener('click', () => switchTab('media'));
@@ -217,10 +211,8 @@
                 handleFiles(files);
             }
         });
-        // --- END: Event Listeners ---
 
-
-        // --- START: Core Functions ---
+        // Core Functions ---
         function updateCharCount() {
             titleCharCount.textContent = titleInput.value.length;
         }
@@ -255,12 +247,10 @@
 
             const uploadPromises = [];
             for (const file of files) {
-                const previewId = previewFile(file); // 1. Create preview and get its ID
+                const previewId = previewFile(file);
 
-                const controller = new AbortController(); // 2. Create AbortController
-                activeUploads.set(previewId, controller); // 3. Store controller
-
-                // 4. Push upload promise, passing ID and signal
+                const controller = new AbortController();
+                activeUploads.set(previewId, controller);
                 uploadPromises.push(uploadFileToPinata(file, previewId, controller.signal));
             }
 
@@ -283,7 +273,6 @@
 
         /**
          * Creates a DOM element for the file preview.
-         * Returns the unique ID for this preview element.
          */
         function previewFile(file) {
             const previewId = 'preview-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
@@ -291,17 +280,15 @@
             let imgContainer = document.createElement('div');
             imgContainer.id = previewId;
             imgContainer.className = 'relative group';
-            imgContainer.dataset.fileName = file.name; // For debugging
+            imgContainer.dataset.fileName = file.name;
 
-            // --- ADDED: Remove Button ---
             let removeBtn = document.createElement('button');
-            removeBtn.type = 'button'; // Prevent form submission
+            removeBtn.type = 'button';
             removeBtn.className = 'preview-remove-btn';
-            removeBtn.innerHTML = '&times;'; // 'X' symbol
+            removeBtn.innerHTML = '&times;';
             removeBtn.title = 'Remove file';
             removeBtn.onclick = () => removeUpload(previewId);
             imgContainer.appendChild(removeBtn);
-            // --- END: Remove Button ---
 
             // Create video/image tag
             if (file.type.startsWith('image/')) {
@@ -320,13 +307,10 @@
                 video.play();
             }
 
-            // --- MODIFIED: Loading Overlay ---
             let loadingOverlay = document.createElement('div');
-            // Added 'loading-overlay' class for easier selection
             loadingOverlay.className = 'loading-overlay absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-lg font-semibold rounded-md';
             loadingOverlay.textContent = 'Uploading...';
             imgContainer.appendChild(loadingOverlay);
-            // --- END: Loading Overlay ---
 
             mediaPreview.appendChild(imgContainer);
             return previewId;
@@ -347,7 +331,7 @@
                 const response = await fetch('/posts/upload-to-pinata', {
                     method: 'POST',
                     body: formData,
-                    signal: signal // Pass the signal to fetch
+                    signal: signal
                 });
 
                 if (!response.ok) {
@@ -356,12 +340,10 @@
 
                 const data = await response.json();
 
-                // Store the URL on the element itself
                 if (previewElement) {
                     previewElement.dataset.gatewayUrl = data.gatewayUrl;
                 }
 
-                // --- FIX: Remove overlay on success ---
                 if (loadingOverlay) {
                     loadingOverlay.remove();
                 }
@@ -369,8 +351,7 @@
             } catch (error) {
                 if (error.name === 'AbortError') {
                     console.log('Upload canceled:', file.name);
-                    // The removeUpload function will handle DOM removal
-                    throw error; // Re-throw to be caught by allSettled
+                    throw error;
                 }
 
                 console.error('Error uploading to Pinata:', error);
@@ -378,10 +359,8 @@
                     loadingOverlay.textContent = 'Upload Failed';
                     loadingOverlay.classList.add('upload-error');
                 }
-                // Re-throw the error to be caught by allSettled
                 throw error;
             } finally {
-                // This upload is no longer "active"
                 activeUploads.delete(previewId);
             }
         }
@@ -393,27 +372,22 @@
             const previewElement = document.getElementById(previewId);
             if (!previewElement) return;
 
-            // 1. Cancel in-progress upload, if any
             const controller = activeUploads.get(previewId);
             if (controller) {
-                controller.abort(); // This triggers the 'catch' block in uploadFileToPinata
+                controller.abort();
                 activeUploads.delete(previewId);
                 uploadStatus.textContent = 'Uploads canceled.';
             }
 
-            // 2. Remove the element from the DOM
             previewElement.remove();
-
-            // 3. Resync the hidden input field
             updateHiddenMediaField();
         }
 
         /**
-         * NEW: Reads all successful URLs from the DOM and updates the hidden input.
+         * Reads all successful URLs from the DOM and updates the hidden input.
          */
         function updateHiddenMediaField() {
             let urls = [];
-            // Find all preview elements that have a 'data-gateway-url' attribute
             document.querySelectorAll('#mediaPreview [data-gateway-url]').forEach(el => {
                 urls.push(el.dataset.gatewayUrl);
             });
@@ -421,7 +395,7 @@
         }
 
         /**
-         * NEW: Updates the submit button's disabled state and text.
+         * Updates the submit button's disabled state and text.
          */
         function updateSubmitButtonState() {
             if (isUploading) {
@@ -433,10 +407,6 @@
             }
         }
 
-        // --- END: Core Functions ---
-
-
-        // Initial setup
         updateCharCount();
         switchTab('text');
 

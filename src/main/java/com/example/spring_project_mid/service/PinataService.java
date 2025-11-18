@@ -20,7 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @Service
-@Slf4j // Using Slf4j for logging, good practice!
+@Slf4j
 public class PinataService {
 
     @Value("${pinata.jwt.token}")
@@ -36,11 +36,6 @@ public class PinataService {
 
     /**
      * Uploads a file to Pinata and returns the public gateway URL.
-     *
-     * @param file The MultipartFile to upload.
-     * @return The public URL from the Pinata gateway.
-     * @throws IOException          if the file upload or API request fails.
-     * @throws InterruptedException if the thread is interrupted.
      */
     public String uploadFileToPinata(MultipartFile file) throws IOException, InterruptedException {
         log.info("Starting Pinata upload for file: {}", file.getOriginalFilename());

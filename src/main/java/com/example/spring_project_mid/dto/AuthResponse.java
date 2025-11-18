@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class AuthResponse {
-    private String token; // The JWT
+    private String token;
     private String username;
     private String email;
     private String message;

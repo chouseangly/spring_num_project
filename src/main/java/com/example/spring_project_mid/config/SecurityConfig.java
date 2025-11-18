@@ -43,7 +43,7 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
-                                "/profile/edit" // <-- ADD THIS
+                                "/profile/edit"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -63,7 +63,7 @@ public class SecurityConfig {
                 )
                 .rememberMe(rememberMe -> rememberMe
                         .key("your-very-secret-key-to-hash-the-cookie")
-                        .tokenValiditySeconds(60 * 60 * 24 * 7) // 7 days
+                        .tokenValiditySeconds(60 * 60 * 24 * 7)
                         .userDetailsService(userDetailsService())
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))

@@ -31,7 +31,7 @@ public class User implements UserDetails {
     private String username;
 
     @Column(name = "display_name", length = 100)
-    private String displayName; // Public name, can be changed
+    private String displayName;
 
     @Column(name = "email", length = 100, unique = true, nullable = false)
     private String email;
