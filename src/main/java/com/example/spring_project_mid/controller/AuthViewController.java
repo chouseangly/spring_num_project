@@ -4,12 +4,14 @@ import com.example.spring_project_mid.dto.AuthResponse;
 import com.example.spring_project_mid.dto.RegisterRequest;
 import com.example.spring_project_mid.dto.VerifyOtpRequest;
 import com.example.spring_project_mid.model.Post;
-import com.example.spring_project_mid.model.User; // <-- IMPORT User
+import com.example.spring_project_mid.model.User;
 import com.example.spring_project_mid.repository.PostRepository;
-import com.example.spring_project_mid.repository.UserRepository; // <-- IMPORT UserRepository
+import com.example.spring_project_mid.repository.UserRepository;
 import com.example.spring_project_mid.service.AuthService;
+import com.example.spring_project_mid.service.PinataService; // <-- IMPORT PinataService
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal; // <-- IMPORT
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile; // <-- IMPORT
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
@@ -31,6 +34,7 @@ public class AuthViewController {
     private final AuthService authService;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final PinataService pinataService;
 
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
@@ -107,6 +111,7 @@ public class AuthViewController {
 
     @GetMapping("/login")
     public String showLoginForm(Model model) {
+        // ... (no change)
         model.addAttribute("successMessage", model.getAttribute("successMessage"));
         return "form/login";
     }
@@ -123,14 +128,56 @@ public class AuthViewController {
         model.addAttribute("user", user);
         model.addAttribute("posts", posts);
 
-        return "profile"; // Renders templates/profile.html
+        return "profile";
     }
 
     @GetMapping("/")
     public String showHomePage(Model model) {
-
+        // ... (no change)
         List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
         model.addAttribute("posts", posts);
         return "home";
+    }
+
+    /**
+     * Shows the form for editing the user's profile.
+     */
+    @GetMapping("/profile/edit")
+    public String showEditProfileForm(Model model, @AuthenticationPrincipal User user) {
+        // Add the currently authenticated user to the model
+        model.addAttribute("user", user);
+        return "form/edit-profile"; // Renders templates/form/edit-profile.html
+    }
+
+    /**
+     * Handles the submission of the profile update form.
+     */
+    @PostMapping("/profile/update")
+    public String handleProfileUpdate(
+            @RequestParam("displayName") String displayName,
+            @RequestParam("bio") String bio,
+            @RequestParam("file") MultipartFile file,
+            @AuthenticationPrincipal User user,
+            RedirectAttributes redirectAttributes
+    ) {
+        try {
+            user.setDisplayName(displayName);
+            user.setBio(bio);
+
+            if (file != null && !file.isEmpty()) {
+                String avatarUrl = pinataService.uploadFileToPinata(file);
+                user.setAvatarUrl(avatarUrl);
+            }
+
+            // 3. Save the user
+            userRepository.save(user);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Profile updated successfully!");
+
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating profile: " + e.getMessage());
+        }
+
+        return "redirect:/profile";
     }
 }

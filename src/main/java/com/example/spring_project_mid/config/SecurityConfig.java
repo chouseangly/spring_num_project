@@ -11,7 +11,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-// Import SessionCreationPolicy if not already imported
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -43,7 +42,8 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/css/**",
                                 "/js/**",
-                                "/images/**"
+                                "/images/**",
+                                "/profile/edit" // <-- ADD THIS
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
@@ -58,18 +58,14 @@ public class SecurityConfig {
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
                         .invalidateHttpSession(true)
-                        .deleteCookies("JSESSIONID", "remember-me") // <-- Also delete remember-me on logout
+                        .deleteCookies("JSESSIONID", "remember-me")
                         .permitAll()
                 )
-
-                // --- START: ADD THIS 'REMEMBER ME' BLOCK ---
                 .rememberMe(rememberMe -> rememberMe
-                        .key("your-very-secret-key-to-hash-the-cookie") // Change this to a random string
+                        .key("your-very-secret-key-to-hash-the-cookie")
                         .tokenValiditySeconds(60 * 60 * 24 * 7) // 7 days
-                        .userDetailsService(userDetailsService()) // The same service used for login
+                        .userDetailsService(userDetailsService())
                 )
-                // --- END: 'REMEMBER ME' BLOCK ---
-
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
