@@ -4,7 +4,9 @@ import com.example.spring_project_mid.dto.AuthResponse;
 import com.example.spring_project_mid.dto.RegisterRequest;
 import com.example.spring_project_mid.dto.VerifyOtpRequest;
 import com.example.spring_project_mid.model.Post;
-import com.example.spring_project_mid.repository.PostRepository; // <-- IMPORT EventRepository
+import com.example.spring_project_mid.model.User; // <-- IMPORT User
+import com.example.spring_project_mid.repository.PostRepository;
+import com.example.spring_project_mid.repository.UserRepository; // <-- IMPORT UserRepository
 import com.example.spring_project_mid.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +22,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import java.util.List; // <-- IMPORT List
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -28,8 +30,8 @@ public class AuthViewController {
 
     private final AuthService authService;
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
 
-    // --- Registration Methods (No Change) ---
     @GetMapping("/register")
     public String showRegisterForm(Model model) {
         model.addAttribute("registerRequest", new RegisterRequest());
@@ -68,7 +70,6 @@ public class AuthViewController {
         return "redirect:/verify-otp";
     }
 
-    // --- OTP Verification Methods (No Change) ---
     @GetMapping("/verify-otp")
     public String showVerifyOtpForm(@RequestParam("email") String email, Model model) {
         VerifyOtpRequest verifyOtpRequest = new VerifyOtpRequest();
@@ -104,7 +105,6 @@ public class AuthViewController {
         }
     }
 
-    // --- Login Method (No Change) ---
     @GetMapping("/login")
     public String showLoginForm(Model model) {
         model.addAttribute("successMessage", model.getAttribute("successMessage"));
@@ -113,31 +113,24 @@ public class AuthViewController {
 
     @GetMapping("/profile")
     public String showProfilePage(Model model) {
-        // Get username from Spring Security's context
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
 
-        // You could also fetch the full user from the repository if you need more details
-        // For now, we'll just pass the username to the page
-        model.addAttribute("username", username);
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
 
-        return "profile"; // This will render templates/profile.html
-    }
+        List<Post> posts = postRepository.findAllByUserOrderByCreatedAtDesc(user);
 
-    // --- START: MODIFIED HOME PAGE METHOD ---
-    /**
-     * Shows the home page, now with a feed of events.
-     */
-    @GetMapping("/")
-    public String showHomePage(Model model) { // <-- ADD Model
-
-        // Fetch all events, newest first
-        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
-
-        // Add the list to the model so Thymeleaf can access it
+        model.addAttribute("user", user);
         model.addAttribute("posts", posts);
 
-        // This tells Thymeleaf to render the "home.html" template
+        return "profile"; // Renders templates/profile.html
+    }
+
+    @GetMapping("/")
+    public String showHomePage(Model model) {
+
+        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+        model.addAttribute("posts", posts);
         return "home";
     }
-    // --- END: MODIFIED METHOD ---
 }
