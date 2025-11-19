@@ -22,10 +22,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -218,5 +215,45 @@ public class AuthViewController {
         }
 
         return "redirect:/profile";
+    }
+
+    /**
+     * Displays another user's profile page.
+     */
+    @GetMapping("/users/{username}")
+    public String showUserProfile(@PathVariable String username, Model model) {
+        User targetUser = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        boolean isOwner = targetUser.getUsername().equals(currentUsername);
+
+        List<Post> posts = postRepository.findAllByUserOrderByCreatedAtDesc(targetUser);
+        List<Comment> comments = commentRepository.findByUserOrderByCreatedAtDesc(targetUser);
+
+        List<SavedPost> savedPosts;
+        if (isOwner) {
+            savedPosts = savedPostRepository.findByUserOrderByCreatedAtDesc(targetUser);
+        } else {
+            savedPosts = new ArrayList<>();
+        }
+
+        List<Object> activities = new ArrayList<>();
+        activities.addAll(posts);
+        activities.addAll(comments);
+
+        activities.sort((o1, o2) -> {
+            LocalDateTime t1 = (o1 instanceof Post) ? ((Post) o1).getCreatedAt() : ((Comment) o1).getCreatedAt();
+            LocalDateTime t2 = (o2 instanceof Post) ? ((Post) o2).getCreatedAt() : ((Comment) o2).getCreatedAt();
+            return t2.compareTo(t1);
+        });
+
+        model.addAttribute("user", targetUser);
+        model.addAttribute("posts", posts);
+        model.addAttribute("activities", activities);
+        model.addAttribute("savedPosts", savedPosts);
+        model.addAttribute("isOwner", isOwner);
+
+        return "profile";
     }
 }

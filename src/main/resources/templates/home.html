@@ -47,7 +47,9 @@
                     <span th:if="${post.faculty != null}" class="mr-2">&middot;</span>
 
                     <span>Posted by </span>
-                    <span class="font-medium text-gray-700 ml-1" th:text="${post.user.username}">Username</span>
+                    <a th:href="@{'/users/' + ${post.user.username}}"
+                       class="font-medium text-gray-700 ml-1 hover:underline"
+                       th:text="${post.user.username}">Username</a>
                     <span class="mx-2">&middot;</span>
 
                     <span class="relative-time cursor-pointer"
