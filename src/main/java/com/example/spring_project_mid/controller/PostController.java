@@ -3,9 +3,11 @@ package com.example.spring_project_mid.controller;
 import com.example.spring_project_mid.model.Image;
 import com.example.spring_project_mid.model.Post;
 import com.example.spring_project_mid.model.User;
-import com.example.spring_project_mid.model.Vote; // <-- ADD IMPORT
+import com.example.spring_project_mid.model.Vote;
 import com.example.spring_project_mid.repository.PostRepository;
-import com.example.spring_project_mid.repository.VoteRepository; // <-- ADD IMPORT
+import com.example.spring_project_mid.model.SavedPost;
+import com.example.spring_project_mid.repository.SavedPostRepository;
+import com.example.spring_project_mid.repository.VoteRepository;
 import com.example.spring_project_mid.service.PinataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Map;
-import java.util.Optional; // <-- ADD IMPORT
+import java.util.Optional;
 import java.util.Set;
 
 @Controller
@@ -27,6 +29,7 @@ public class PostController {
     private final PostRepository postRepository;
     private final PinataService pinataService;
     private final VoteRepository voteRepository;
+    private final SavedPostRepository savedPostRepository;
 
     @GetMapping("/create")
     public String showCreatePostForm(Model model) {
@@ -86,6 +89,40 @@ public class PostController {
             voteRepository.save(newVote);
         }
 
+        return "redirect:/";
+    }
+
+    /**
+     * Toggles the Saved status for a post.
+     * Prevent users from saving their own posts.
+     */
+    @PostMapping("/{postId}/save")
+    public String toggleSave(@PathVariable Long postId, @AuthenticationPrincipal User user) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        // 1. Prevent saving own post
+        if (post.getUser().getId().equals(user.getId())) {
+            // Optionally add an error message via RedirectAttributes
+            return "redirect:/";
+        }
+
+        // 2. Check if already saved
+        Optional<SavedPost> existingSave = savedPostRepository.findByUserAndPost(user, post);
+
+        if (existingSave.isPresent()) {
+            // Unsave
+            savedPostRepository.delete(existingSave.get());
+        } else {
+            // Save
+            SavedPost savedPost = SavedPost.builder()
+                    .post(post)
+                    .user(user)
+                    .build();
+            savedPostRepository.save(savedPost);
+        }
+
+        // Redirect back to the previous page (Header Referer) or Home
         return "redirect:/";
     }
 
