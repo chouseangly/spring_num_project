@@ -3,17 +3,20 @@ package com.example.spring_project_mid.controller;
 import com.example.spring_project_mid.model.Image;
 import com.example.spring_project_mid.model.Post;
 import com.example.spring_project_mid.model.User;
+import com.example.spring_project_mid.model.Vote; // <-- ADD IMPORT
 import com.example.spring_project_mid.repository.PostRepository;
-import com.example.spring_project_mid.service.PinataService; // <-- IMPORT THE NEW SERVICE
+import com.example.spring_project_mid.repository.VoteRepository; // <-- ADD IMPORT
+import com.example.spring_project_mid.service.PinataService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity; // <-- IMPORT ResponseEntity
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile; // <-- IMPORT MultipartFile
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Map; // <-- IMPORT Map
+import java.util.Map;
+import java.util.Optional; // <-- ADD IMPORT
 import java.util.Set;
 
 @Controller
@@ -23,6 +26,7 @@ public class PostController {
 
     private final PostRepository postRepository;
     private final PinataService pinataService;
+    private final VoteRepository voteRepository;
 
     @GetMapping("/create")
     public String showCreatePostForm(Model model) {
@@ -58,6 +62,30 @@ public class PostController {
             }
         }
         postRepository.save(post);
+        return "redirect:/";
+    }
+
+    /**
+     * Toggles the like status for a post by the authenticated user.
+     */
+    @PostMapping("/{postId}/like")
+    public String toggleLike(@PathVariable Long postId, @AuthenticationPrincipal User user) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        Optional<Vote> existingVote = voteRepository.findByUserAndPost(user, post);
+
+        if (existingVote.isPresent()) {
+            voteRepository.delete(existingVote.get());
+        } else {
+            Vote newVote = Vote.builder()
+                    .post(post)
+                    .user(user)
+                    .voteType(1)
+                    .build();
+            voteRepository.save(newVote);
+        }
+
         return "redirect:/";
     }
 

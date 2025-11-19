@@ -202,7 +202,21 @@
                     </div>
 
                     <div class="flex items-center text-gray-500 font-medium text-sm">
-                        <a href="#" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 mr-2">
+                        <div sec:authorize="isAuthenticated()">
+                            <th:block th:with="isLiked=${#sets.contains(post.votes.![user.id], #authentication.principal.id)}">
+                                <form th:action="@{/posts/{postId}/like(postId=${post.id})}" method="post" class="inline-block">
+                                    <button type="submit"
+                                            th:classappend="${isLiked} ? 'text-red-600 bg-red-100 hover:bg-red-200' : 'text-gray-500 hover:bg-gray-100'"
+                                            class="flex items-center py-2 px-3 rounded-lg mr-2 font-medium transition-colors">
+                                        <i th:classappend="${isLiked} ? 'fas' : 'far'" class="fa-heart mr-2"></i>
+                                        <span th:text="${isLiked} ? 'Liked' : 'Like'">Like</span>
+                                    </button>
+                                </form>
+                            </th:block>
+                        </div>
+                        <a th:href="@{/login}"
+                           class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 mr-2"
+                           sec:authorize="isAnonymous()">
                             <i class="far fa-heart mr-2"></i>
                             <span>Like</span>
                         </a>
