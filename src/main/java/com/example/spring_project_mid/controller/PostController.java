@@ -17,9 +17,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/posts")
@@ -31,6 +34,9 @@ public class PostController {
     private final VoteRepository voteRepository;
     private final SavedPostRepository savedPostRepository;
 
+    /**
+     * Shows the form for creating a new post.
+     */
     @GetMapping("/create")
     public String showCreatePostForm(Model model) {
         model.addAttribute("post", new Post());
@@ -47,19 +53,15 @@ public class PostController {
             @AuthenticationPrincipal User user
     ) {
         post.setUser(user);
-
         Set<Image> images = post.getImages();
 
         if (mediaUrls != null && !mediaUrls.isEmpty()) {
             String[] urls = mediaUrls.split(",");
-
             for (String url : urls) {
                 if (!url.trim().isEmpty()) {
                     Image newImage = new Image();
                     newImage.setUrl(url.trim());
-
                     newImage.setPost(post);
-
                     images.add(newImage);
                 }
             }
@@ -69,7 +71,83 @@ public class PostController {
     }
 
     /**
-     * Toggles the like status for a post by the authenticated user.
+     * Shows the edit form for a specific post.
+     */
+    @GetMapping("/{id}/edit")
+    public String showEditPostForm(@PathVariable Long id, Model model, @AuthenticationPrincipal User user) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        if (!post.getUser().getId().equals(user.getId())) {
+            return "redirect:/";
+        }
+
+        model.addAttribute("post", post);
+        return "edit-post";
+    }
+
+    /**
+     * Handles the form submission for updating a post.
+     */
+    @PostMapping("/{id}/edit")
+    public String updatePost(
+            @PathVariable Long id,
+            @ModelAttribute Post postRequest,
+            @RequestParam(value = "mediaUrls", required = false) String mediaUrls,
+            @AuthenticationPrincipal User user
+    ) {
+        Post existingPost = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        if (!existingPost.getUser().getId().equals(user.getId())) {
+            return "redirect:/";
+        }
+
+        existingPost.setTitle(postRequest.getTitle());
+        existingPost.setContent(postRequest.getContent());
+        existingPost.setLinkUrl(postRequest.getLinkUrl());
+
+        Set<String> newUrlSet = new HashSet<>();
+        if (mediaUrls != null && !mediaUrls.isEmpty()) {
+            Collections.addAll(newUrlSet, mediaUrls.split(","));
+        }
+
+        existingPost.getImages().removeIf(img -> !newUrlSet.contains(img.getUrl()));
+
+        Set<String> currentUrlSet = existingPost.getImages().stream()
+                .map(Image::getUrl)
+                .collect(Collectors.toSet());
+
+        for (String url : newUrlSet) {
+            if (!currentUrlSet.contains(url) && !url.trim().isEmpty()) {
+                Image img = new Image();
+                img.setUrl(url.trim());
+                img.setPost(existingPost);
+                existingPost.getImages().add(img);
+            }
+        }
+
+        postRepository.save(existingPost);
+        return "redirect:/profile";
+    }
+
+    /**
+     * Deletes a specific post.
+     */
+    @PostMapping("/{id}/delete")
+    public String deletePost(@PathVariable Long id, @AuthenticationPrincipal User user) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        if (post.getUser().getId().equals(user.getId())) {
+            postRepository.delete(post);
+        }
+
+        return "redirect:/profile";
+    }
+
+    /**
+     * Toggles the Like status for a post.
      */
     @PostMapping("/{postId}/like")
     public String toggleLike(@PathVariable Long postId, @AuthenticationPrincipal User user) {
@@ -97,33 +175,28 @@ public class PostController {
      * Prevent users from saving their own posts.
      */
     @PostMapping("/{postId}/save")
-    public String toggleSave(@PathVariable Long postId, @AuthenticationPrincipal User user) {
+    public String toggleSave(@PathVariable Long postId, @AuthenticationPrincipal User user, jakarta.servlet.http.HttpServletRequest request) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        // 1. Prevent saving own post
         if (post.getUser().getId().equals(user.getId())) {
-            // Optionally add an error message via RedirectAttributes
-            return "redirect:/";
+            String referer = request.getHeader("Referer");
+            return "redirect:" + (referer != null ? referer : "/");
         }
 
-        // 2. Check if already saved
         Optional<SavedPost> existingSave = savedPostRepository.findByUserAndPost(user, post);
 
         if (existingSave.isPresent()) {
-            // Unsave
             savedPostRepository.delete(existingSave.get());
         } else {
-            // Save
             SavedPost savedPost = SavedPost.builder()
                     .post(post)
                     .user(user)
                     .build();
             savedPostRepository.save(savedPost);
         }
-
-        // Redirect back to the previous page (Header Referer) or Home
-        return "redirect:/";
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/");
     }
 
     /**
@@ -135,12 +208,9 @@ public class PostController {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
         }
-
         try {
             String gatewayUrl = pinataService.uploadFileToPinata(file);
-
             return ResponseEntity.ok(Map.of("gatewayUrl", gatewayUrl));
-
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Upload failed: " + e.getMessage()));
         }
