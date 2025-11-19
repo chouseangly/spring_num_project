@@ -8,6 +8,8 @@ import com.example.spring_project_mid.model.Post;
 import com.example.spring_project_mid.model.User;
 import com.example.spring_project_mid.repository.CommentRepository;
 import com.example.spring_project_mid.repository.PostRepository;
+import com.example.spring_project_mid.model.SavedPost;
+import com.example.spring_project_mid.repository.SavedPostRepository;
 import com.example.spring_project_mid.repository.UserRepository;
 import com.example.spring_project_mid.service.AuthService;
 import com.example.spring_project_mid.service.PinataService;
@@ -29,7 +31,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @Controller
@@ -41,6 +42,7 @@ public class AuthViewController {
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final PinataService pinataService;
+    private final SavedPostRepository savedPostRepository;
 
     /**
      * Shows the registration form.
@@ -147,8 +149,8 @@ public class AuthViewController {
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
 
         List<Post> posts = postRepository.findAllByUserOrderByCreatedAtDesc(user);
-
         List<Comment> comments = commentRepository.findByUserOrderByCreatedAtDesc(user);
+        List<SavedPost> savedPosts = savedPostRepository.findByUserOrderByCreatedAtDesc(user);
 
         List<Object> activities = new ArrayList<>();
         activities.addAll(posts);
@@ -163,6 +165,7 @@ public class AuthViewController {
         model.addAttribute("user", user);
         model.addAttribute("posts", posts);
         model.addAttribute("activities", activities);
+        model.addAttribute("savedPosts", savedPosts);
 
         return "profile";
     }

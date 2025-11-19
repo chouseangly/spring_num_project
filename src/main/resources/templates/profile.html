@@ -397,10 +397,100 @@
         </div>
 
         <div id="saved-tab-content" class="tab-content">
-            <div class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
-                <i class="fas fa-bookmark fa-2x mb-2"></i>
-                <h3 class="text-lg font-semibold">Saved</h3>
-                <p>(Saved posts and comments will appear here)</p>
+            <div th:if="${savedPosts.isEmpty()}" class="text-center text-gray-500 mt-10">
+                <i class="fas fa-bookmark fa-3x mb-4"></i>
+                <h3 class="text-xl font-semibold">No saved posts yet.</h3>
+                <p>Posts you save will appear here.</p>
+            </div>
+
+            <div th:each="saved : ${savedPosts}" th:with="post=${saved.post}"
+                 class="bg-white rounded-lg shadow-md mb-4 overflow-hidden">
+
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex items-center text-sm text-gray-500 flex-wrap">
+                            <span th:if="${post.faculty != null}" class="font-semibold text-gray-800 mr-2" th:text="${post.faculty.name}">Faculty</span>
+                            <span th:if="${post.faculty != null}" class="mr-2">&middot;</span>
+                            <span>Posted by </span>
+                            <span class="font-medium text-gray-700 ml-1" th:text="${post.user.username}">User</span>
+                            <span class="mx-2">&middot;</span>
+                            <span class="relative-time cursor-pointer"
+                                  th:data-timestamp="${post.createdAt}"
+                                  th:data-full-date="${#temporals.format(post.createdAt, 'dd-MMM-yyyy HH:mm')}">
+                    </span>
+                        </div>
+                    </div>
+
+                    <div class="post-title-wrapper">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-3 post-title-content">
+                            <a th:if="${post.linkUrl != null and not #strings.isEmpty(post.linkUrl)}"
+                               th:href="${post.linkUrl}" target="_blank" class="hover:text-red-600" th:text="${post.title}">Post Title</a>
+                            <a th:if="${post.linkUrl == null or #strings.isEmpty(post.linkUrl)}"
+                               href="#" class="hover:text-red-600" th:text="${post.title}">Post Title</a>
+                        </h3>
+                    </div>
+
+                    <div th:if="${post.images != null and not post.images.isEmpty()}" class="my-4 rounded-lg overflow-hidden"
+                         th:with="imageCount=${#lists.size(post.images)}">
+                        <div class="grid gap-1"
+                             th:classappend="${imageCount == 1 ? 'grid-cols-1' : (imageCount == 2 ? 'grid-cols-2' : 'grid-cols-3')}">
+                            <th:block th:each="image, iterStat : ${post.images}" th:if="${iterStat.count <= 3}">
+                                <div class="relative" th:classappend="${imageCount > 1 ? 'aspect-square' : 'max-h-[500px]'}">
+                                    <div th:if="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
+                                        <video class="w-full h-full object-cover" controls>
+                                            <source th:src="${image.url}" type="video/mp4">
+                                        </video>
+                                    </div>
+                                    <div th:unless="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
+                                        <a th:href="${image.url}" data-fancybox="gallery" class="block w-full h-full">
+                                            <img th:src="${image.url}" class="w-full h-full object-cover">
+                                        </a>
+                                    </div>
+                                </div>
+                            </th:block>
+                        </div>
+                    </div>
+
+                    <div class="post-content-wrapper">
+                        <p th:if="${post.content != null}" class="text-gray-700 mb-2 whitespace-pre-wrap post-content"
+                           th:data-content="${post.content}"></p>
+                        <button class="see-more-btn hidden text-sm font-semibold text-blue-600 hover:underline mb-4">See more</button>
+                    </div>
+
+                    <div class="flex items-center text-gray-500 font-medium text-sm mt-4">
+
+                        <div sec:authorize="isAuthenticated()">
+                            <th:block th:with="isLiked=${#sets.contains(post.votes.![user.id], #authentication.principal.id)}">
+                                <form th:action="@{/posts/{postId}/like(postId=${post.id})}" method="post" class="inline-block">
+                                    <button type="submit"
+                                            th:classappend="${isLiked} ? 'text-red-600 bg-red-100 hover:bg-red-200' : 'text-gray-500 hover:bg-gray-100'"
+                                            class="flex items-center py-2 px-3 rounded-lg mr-2 font-medium transition-colors">
+                                        <i th:classappend="${isLiked} ? 'fas' : 'far'" class="fa-heart mr-2"></i>
+                                        <span th:text="${isLiked} ? 'Liked' : 'Like'">Like</span>
+                                    </button>
+                                </form>
+                            </th:block>
+                        </div>
+
+                        <span class="mx-2 font-bold text-gray-700" th:text="${post.votes.size()}">0</span>
+
+                        <a href="#" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 ml-2">
+                            <i class="fas fa-comment mr-2"></i>
+                            <span th:text="${post.comments.size()} + ' Comments'">0 Comments</span>
+                        </a>
+
+                        <div class="ml-auto">
+                            <form th:action="@{/posts/{postId}/save(postId=${post.id})}" method="post" class="inline-block">
+                                <button type="submit" title="Click to Unsave"
+                                        class="text-blue-600 bg-blue-50 hover:bg-blue-100 flex items-center py-2 px-3 rounded-lg transition-colors">
+                                    <i class="fas fa-bookmark mr-2"></i>
+                                    <span>Saved</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
 
