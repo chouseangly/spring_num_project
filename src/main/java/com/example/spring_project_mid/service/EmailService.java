@@ -15,6 +15,12 @@ public class EmailService {
     @Value("${spring.mail.username}")
     private String fromEmail;
 
+    /**
+     * Sends an OTP email to the specified recipient.
+     *
+     * @param to  Recipient's email address
+     * @param otp One-time password to be sent
+     */
     public void sendOtpEmail(String to, String otp) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromEmail);
@@ -24,6 +30,12 @@ public class EmailService {
         mailSender.send(message);
     }
 
+    /**
+     * Sends a password reset email to the specified recipient.
+     *
+     * @param to        Recipient's email address
+     * @param resetLink Password reset link
+     */
     public void sendPasswordResetEmail(String to, String resetLink) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromEmail);

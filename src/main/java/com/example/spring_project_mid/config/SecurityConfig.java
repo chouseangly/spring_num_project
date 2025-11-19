@@ -27,6 +27,9 @@ public class SecurityConfig {
 
     private final UserRepository userRepository;
 
+    /**
+     * Configures the security filter chain for HTTP requests.
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         http
@@ -73,12 +76,18 @@ public class SecurityConfig {
         return http.build();
     }
 
+    /**
+     * Loads user details by username or email.
+     */
     @Bean
     public UserDetailsService userDetailsService() {
         return username -> userRepository.findByUsernameOrEmail(username, username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
     }
 
+    /**
+     * Configures the authentication provider with user details service and password encoder.
+     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -87,11 +96,17 @@ public class SecurityConfig {
         return authProvider;
     }
 
+    /**
+     * Provides the authentication manager bean.
+     */
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
+    /**
+     * Configures the password encoder using BCrypt.
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

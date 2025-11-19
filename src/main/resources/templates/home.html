@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Home - NUM Event Manager</title>
+    <title>Home - NUM Community</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
@@ -141,7 +141,21 @@
                 </div>
 
                 <div class="flex items-center text-gray-500 font-medium text-sm">
-                    <a href="#" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 mr-2">
+                    <div sec:authorize="isAuthenticated()">
+                        <th:block th:with="isLiked=${#sets.contains(post.votes.![user.id], #authentication.principal.id)}">
+                            <form th:action="@{/posts/{postId}/like(postId=${post.id})}" method="post" class="inline-block">
+                                <button type="submit"
+                                        th:classappend="${isLiked} ? 'text-red-600 bg-red-100 hover:bg-red-200' : 'text-gray-500 hover:bg-gray-100'"
+                                        class="flex items-center py-2 px-3 rounded-lg mr-2 font-medium transition-colors">
+                                    <i th:classappend="${isLiked} ? 'fas' : 'far'" class="fa-heart mr-2"></i>
+                                    <span th:text="${isLiked} ? 'Liked' : 'Like'">Like</span>
+                                </button>
+                            </form>
+                        </th:block>
+                    </div>
+                    <a th:href="@{/login}"
+                       class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 mr-2"
+                       sec:authorize="isAnonymous()">
                         <i class="far fa-heart mr-2"></i>
                         <span>Like</span>
                     </a>
@@ -150,10 +164,24 @@
                         <i class="fas fa-comment mr-2"></i>
                         <span th:text="${post.comments.size()} + ' Comments'">0 Comments</span>
                     </a>
-                    <a href="#" sec:authorize="isAuthenticated()" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 ml-4">
-                        <i class="far fa-bookmark mr-2"></i>
-                        <span>Save</span>
-                    </a>
+                    <div sec:authorize="isAuthenticated()">
+                        <div th:unless="${post.user.id == #authentication.principal.id}" class="ml-4">
+
+                            <th:block th:with="isSaved=${#sets.contains(post.savedPosts.![user.id], #authentication.principal.id)}">
+
+                                <form th:action="@{/posts/{postId}/save(postId=${post.id})}" method="post" class="inline-block">
+                                    <button type="submit"
+                                            th:classappend="${isSaved} ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' : 'text-gray-500 hover:bg-gray-100'"
+                                            class="flex items-center py-2 px-3 rounded-lg transition-colors">
+
+                                        <i th:classappend="${isSaved} ? 'fas' : 'far'" class="fa-bookmark mr-2"></i>
+
+                                        <span th:text="${isSaved} ? 'Saved' : 'Save'">Save</span>
+                                    </button>
+                                </form>
+                            </th:block>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

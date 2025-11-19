@@ -3,15 +3,19 @@ package com.example.spring_project_mid.controller;
 import com.example.spring_project_mid.dto.AuthResponse;
 import com.example.spring_project_mid.dto.RegisterRequest;
 import com.example.spring_project_mid.dto.VerifyOtpRequest;
+import com.example.spring_project_mid.model.Comment;
 import com.example.spring_project_mid.model.Post;
 import com.example.spring_project_mid.model.User;
+import com.example.spring_project_mid.repository.CommentRepository;
 import com.example.spring_project_mid.repository.PostRepository;
+import com.example.spring_project_mid.model.SavedPost;
+import com.example.spring_project_mid.repository.SavedPostRepository;
 import com.example.spring_project_mid.repository.UserRepository;
 import com.example.spring_project_mid.service.AuthService;
-import com.example.spring_project_mid.service.PinataService; // <-- IMPORT PinataService
+import com.example.spring_project_mid.service.PinataService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal; // <-- IMPORT
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,9 +26,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile; // <-- IMPORT
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Controller
@@ -33,8 +39,10 @@ public class AuthViewController {
 
     private final AuthService authService;
     private final PostRepository postRepository;
+    private final CommentRepository commentRepository;
     private final UserRepository userRepository;
     private final PinataService pinataService;
+    private final SavedPostRepository savedPostRepository;
 
     /**
      * Shows the registration form.
@@ -141,9 +149,23 @@ public class AuthViewController {
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
 
         List<Post> posts = postRepository.findAllByUserOrderByCreatedAtDesc(user);
+        List<Comment> comments = commentRepository.findByUserOrderByCreatedAtDesc(user);
+        List<SavedPost> savedPosts = savedPostRepository.findByUserOrderByCreatedAtDesc(user);
+
+        List<Object> activities = new ArrayList<>();
+        activities.addAll(posts);
+        activities.addAll(comments);
+
+        activities.sort((o1, o2) -> {
+            LocalDateTime t1 = (o1 instanceof Post) ? ((Post) o1).getCreatedAt() : ((Comment) o1).getCreatedAt();
+            LocalDateTime t2 = (o2 instanceof Post) ? ((Post) o2).getCreatedAt() : ((Comment) o2).getCreatedAt();
+            return t2.compareTo(t1);
+        });
 
         model.addAttribute("user", user);
         model.addAttribute("posts", posts);
+        model.addAttribute("activities", activities);
+        model.addAttribute("savedPosts", savedPosts);
 
         return "profile";
     }

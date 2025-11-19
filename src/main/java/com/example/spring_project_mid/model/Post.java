@@ -1,5 +1,3 @@
-// In: chouseangly/spring_num_project/spring_num_project-main/src/main/java/com/example/spring_project_mid/model/Post.java
-
 package com.example.spring_project_mid.model;
 
 import jakarta.persistence.*;
@@ -50,6 +48,11 @@ public class Post {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Vote> votes = new HashSet<>();
+
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<SavedPost> savedPosts = new HashSet<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @ToString.Exclude

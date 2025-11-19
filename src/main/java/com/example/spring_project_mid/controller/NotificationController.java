@@ -17,6 +17,9 @@ public class NotificationController {
 
     private final NotificationRepository notificationRepository;
 
+    /**
+     * Displays the notifications page for the authenticated user.
+     */
     @GetMapping("/notifications")
     public String showNotifications(@AuthenticationPrincipal User user, Model model) {
 

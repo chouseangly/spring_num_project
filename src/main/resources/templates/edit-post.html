@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Post - NUM Community</title>
+    <title>Edit - NUM Community</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -19,24 +19,19 @@
             border-color: #ef4444;
             background-color: #fef2f2;
         }
-        .upload-error {
-            background-color: #ef4444;
-            color: white;
-        }
-
         .preview-remove-btn {
             position: absolute;
             top: 0.25rem;
             right: 0.25rem;
-            width: 1.5rem; /* w-6 */
-            height: 1.5rem; /* h-6 */
-            border-radius: 9999px; /* rounded-full */
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 9999px;
             background-color: rgba(0, 0, 0, 0.6);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.15rem; /* text-xl */
+            font-size: 1.15rem;
             line-height: 1;
             font-weight: 600;
             cursor: pointer;
@@ -67,15 +62,15 @@
 
 <div class="p-4 md:p-8 flex-grow">
     <div class="max-w-xl mx-auto bg-white px-4 sm:px-8 py-10 rounded-xl shadow">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Create Post</h2>
+        <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Post</h2>
 
         <div class="border-b border-gray-200 mb-6 flex">
-            <button type="button" id="textTab" class="tab-button active px-4 py-2 text-gray-700 font-semibold hover:bg-gray-50 focus:outline-none">Text</button>
+            <button type="button" id="textTab" class="tab-button px-4 py-2 text-gray-700 font-semibold hover:bg-gray-50 focus:outline-none">Text</button>
             <button type="button" id="mediaTab" class="tab-button px-4 py-2 text-gray-700 font-semibold hover:bg-gray-50 focus:outline-none">Images & Video</button>
             <button type="button" id="linkTab" class="tab-button px-4 py-2 text-gray-700 font-semibold hover:bg-gray-50 focus:outline-none">Link</button>
         </div>
 
-        <form th:action="@{/posts/create}" th:object="${post}" method="post">
+        <form th:action="@{/posts/{id}/edit(id=${post.id})}" th:object="${post}" method="post">
 
             <div class="mb-6">
                 <label for="title" class="sr-only">Title</label>
@@ -92,6 +87,7 @@
                 <div class="mb-6">
                     <label for="textPanel_Input" class="sr-only">Body text (optional)</label>
                     <textarea id="textPanel_Input" placeholder="Body text (optional)" rows="8"
+                              th:text="${post.content}"
                               class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-base text-gray-900 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 sm:text-sm/6 transition-colors duration-200 ease-in-out resize-y"></textarea>
                 </div>
             </div>
@@ -113,20 +109,23 @@
                 <div class="mb-6">
                     <label for="linkPanel_Input" class="sr-only">URL</label>
                     <input type="url" id="linkPanel_Input" placeholder="URL"
+                           th:value="${post.linkUrl}"
                            class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-base text-gray-900 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 sm:text-sm/6 transition-colors duration-200 ease-in-out" />
                 </div>
             </div>
 
             <div class="flex justify-end space-x-4 mt-8">
-                <button type="button" class="hidden sm:block px-4 py-2 text-gray-800 text-sm font-medium rounded-full hover:bg-gray-200 focus:ring-4 focus:ring-gray-100 focus:ring-opacity-50 transition-colors">Save Draft</button>
-                <button type="submit" id="postSubmitButton" class="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-full hover:bg-red-700 focus:ring-4 focus:ring-red-600 focus:ring-opacity-50 transition-colors">Post</button>
+                <a th:href="@{/profile}" class="px-5 py-2 bg-gray-200 text-gray-800 text-sm font-medium rounded-full hover:bg-gray-300 transition-colors">Cancel</a>
+                <button type="submit" id="postSubmitButton" class="px-5 py-2 bg-red-600 text-white text-sm font-medium rounded-full hover:bg-red-700 focus:ring-4 focus:ring-red-600 focus:ring-opacity-50 transition-colors">Save Changes</button>
             </div>
         </form>
     </div>
 </div>
 
-<script>
+<script th:inline="javascript">
     document.addEventListener('DOMContentLoaded', function() {
+
+        // 1. Define Variables & Elements FIRST
         const titleInput = document.getElementById('title');
         const titleCharCount = document.getElementById('titleCharCount');
         const postSubmitButton = document.getElementById('postSubmitButton');
@@ -135,20 +134,22 @@
         const textTab = document.getElementById('textTab');
         const mediaTab = document.getElementById('mediaTab');
         const linkTab = document.getElementById('linkTab');
+
+        // Panels
         const textPanel = document.getElementById('textPanel');
         const mediaPanel = document.getElementById('mediaPanel');
         const linkPanel = document.getElementById('linkPanel');
 
-        // Hidden data fields
+        // Hidden fields
         const contentInput_hidden = document.getElementById('content');
         const linkUrlInput_hidden = document.getElementById('linkUrl');
         const mediaUrlsInput_hidden = document.getElementById('mediaUrls');
 
-        // UI fields
+        // Inputs
         const textPanel_Input = document.getElementById('textPanel_Input');
         const linkPanel_Input = document.getElementById('linkPanel_Input');
 
-        // Media elements
+        // Media Uploader
         const mediaUploadInput = document.getElementById('mediaUpload');
         const selectMediaButton = document.getElementById('selectMediaButton');
         const dropArea = document.getElementById('dropArea');
@@ -157,62 +158,9 @@
 
         let activePanel = 'text';
         let isUploading = false;
-
-        /**
-         * Use a Map to store AbortControllers for in-progress uploads.
-         */
         const activeUploads = new Map();
 
-        // Event Listeners ---
-        titleInput.addEventListener('input', updateCharCount);
-        textTab.addEventListener('click', () => switchTab('text'));
-        mediaTab.addEventListener('click', () => switchTab('media'));
-        linkTab.addEventListener('click', () => switchTab('link'));
-        selectMediaButton.addEventListener('click', () => mediaUploadInput.click());
-        mediaUploadInput.addEventListener('change', (e) => handleFiles(e.target.files));
-
-        // Sync UI fields with hidden fields
-        textPanel_Input.addEventListener('input', (e) => {
-            contentInput_hidden.value = e.target.value;
-        });
-        linkPanel_Input.addEventListener('input', (e) => {
-            linkUrlInput_hidden.value = e.target.value;
-        });
-
-        // Drag and Drop
-        ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, preventDefaults, false)
-        });
-        function preventDefaults (e) { e.preventDefault(); e.stopPropagation(); }
-        ;['dragenter', 'dragover'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => dropArea.classList.add('drag-over'), false)
-        });
-        ;['dragleave', 'drop'].forEach(eventName => {
-            dropArea.addEventListener(eventName, () => dropArea.classList.remove('drag-over'), false)
-        });
-        dropArea.addEventListener('drop', (e) => {
-            let dt = e.dataTransfer;
-            handleFiles(dt.files);
-        }, false);
-
-        // Paste functionality
-        document.addEventListener('paste', (e) => {
-            if (activePanel !== 'media') return;
-            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-            let files = [];
-            for (let i = 0; i < items.length; i++) {
-                if (items[i].kind === 'file') {
-                    const file = items[i].getAsFile();
-                    if(file) files.push(file);
-                }
-            }
-            if (files.length > 0) {
-                e.preventDefault();
-                handleFiles(files);
-            }
-        });
-
-        // Core Functions ---
+        // 2. Define Functions (So they are available to be called)
         function updateCharCount() {
             titleCharCount.textContent = titleInput.value.length;
         }
@@ -248,49 +196,72 @@
             const uploadPromises = [];
             for (const file of files) {
                 const previewId = previewFile(file);
-
                 const controller = new AbortController();
                 activeUploads.set(previewId, controller);
                 uploadPromises.push(uploadFileToPinata(file, previewId, controller.signal));
             }
 
-            // Use allSettled to wait for all uploads, even if some fail
             const results = await Promise.allSettled(uploadPromises);
-
             isUploading = false;
             updateSubmitButtonState();
-            updateHiddenMediaField(); // Update hidden field *after* all uploads are done
+            updateHiddenMediaField();
 
-            // Report status
             const failedCount = results.filter(r => r.status === 'rejected' && r.reason.name !== 'AbortError').length;
             if (failedCount > 0) {
                 uploadStatus.textContent = `${failedCount} file(s) failed to upload.`;
                 uploadStatus.classList.add('text-red-600');
             } else if (uploadStatus.textContent !== 'Uploads canceled.') {
-                uploadStatus.textContent = 'All uploads complete!';
+                uploadStatus.textContent = 'Upload complete!';
             }
         }
 
-        /**
-         * Creates a DOM element for the file preview.
-         */
-        function previewFile(file) {
-            const previewId = 'preview-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+        function addExistingPreview(url) {
+            const previewId = 'preview-exist-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
 
             let imgContainer = document.createElement('div');
             imgContainer.id = previewId;
             imgContainer.className = 'relative group';
-            imgContainer.dataset.fileName = file.name;
+            imgContainer.dataset.gatewayUrl = url;
 
             let removeBtn = document.createElement('button');
             removeBtn.type = 'button';
             removeBtn.className = 'preview-remove-btn';
             removeBtn.innerHTML = '&times;';
-            removeBtn.title = 'Remove file';
+            removeBtn.onclick = () => { imgContainer.remove(); updateHiddenMediaField(); };
+            imgContainer.appendChild(removeBtn);
+
+            if (url.endsWith('.mp4') || url.endsWith('.webm')) {
+                let video = document.createElement('video');
+                video.src = url;
+                video.controls = false;
+                video.muted = true;
+                video.loop = true;
+                video.className = 'w-full h-32 object-cover rounded-md border border-gray-200';
+                imgContainer.appendChild(video);
+            } else {
+                let img = document.createElement('img');
+                img.src = url;
+                img.className = 'w-full h-32 object-cover rounded-md border border-gray-200';
+                imgContainer.appendChild(img);
+            }
+
+            mediaPreview.appendChild(imgContainer);
+            updateHiddenMediaField();
+        }
+
+        function previewFile(file) {
+            const previewId = 'preview-' + Date.now() + '-' + Math.random().toString(36).substring(2, 9);
+            let imgContainer = document.createElement('div');
+            imgContainer.id = previewId;
+            imgContainer.className = 'relative group';
+
+            let removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'preview-remove-btn';
+            removeBtn.innerHTML = '&times;';
             removeBtn.onclick = () => removeUpload(previewId);
             imgContainer.appendChild(removeBtn);
 
-            // Create video/image tag
             if (file.type.startsWith('image/')) {
                 let img = document.createElement('img');
                 img.src = URL.createObjectURL(file);
@@ -304,7 +275,6 @@
                 video.loop = true;
                 video.className = 'w-full h-32 object-cover rounded-md border border-gray-200';
                 imgContainer.appendChild(video);
-                video.play();
             }
 
             let loadingOverlay = document.createElement('div');
@@ -316,15 +286,10 @@
             return previewId;
         }
 
-        /**
-         * Uploads a single file to Pinata.
-         */
         async function uploadFileToPinata(file, previewId, signal) {
             const formData = new FormData();
             formData.append('file', file);
-
             const previewElement = document.getElementById(previewId);
-            // Use the new class to find the overlay
             const loadingOverlay = previewElement ? previewElement.querySelector('.loading-overlay') : null;
 
             try {
@@ -334,29 +299,16 @@
                     signal: signal
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Upload Failed: ${response.status} ${response.statusText}`);
-                }
-
+                if (!response.ok) throw new Error('Upload Failed');
                 const data = await response.json();
 
-                if (previewElement) {
-                    previewElement.dataset.gatewayUrl = data.gatewayUrl;
-                }
-
-                if (loadingOverlay) {
-                    loadingOverlay.remove();
-                }
+                if (previewElement) previewElement.dataset.gatewayUrl = data.gatewayUrl;
+                if (loadingOverlay) loadingOverlay.remove();
 
             } catch (error) {
-                if (error.name === 'AbortError') {
-                    console.log('Upload canceled:', file.name);
-                    throw error;
-                }
-
-                console.error('Error uploading to Pinata:', error);
+                if (error.name === 'AbortError') throw error;
                 if (loadingOverlay) {
-                    loadingOverlay.textContent = 'Upload Failed';
+                    loadingOverlay.textContent = 'Failed';
                     loadingOverlay.classList.add('upload-error');
                 }
                 throw error;
@@ -365,27 +317,15 @@
             }
         }
 
-        /**
-         * NEW: Removes a preview element and cancels its upload if in progress.
-         */
         function removeUpload(previewId) {
             const previewElement = document.getElementById(previewId);
             if (!previewElement) return;
-
             const controller = activeUploads.get(previewId);
-            if (controller) {
-                controller.abort();
-                activeUploads.delete(previewId);
-                uploadStatus.textContent = 'Uploads canceled.';
-            }
-
+            if (controller) controller.abort();
             previewElement.remove();
             updateHiddenMediaField();
         }
 
-        /**
-         * Reads all successful URLs from the DOM and updates the hidden input.
-         */
         function updateHiddenMediaField() {
             let urls = [];
             document.querySelectorAll('#mediaPreview [data-gateway-url]').forEach(el => {
@@ -394,22 +334,73 @@
             mediaUrlsInput_hidden.value = urls.join(',');
         }
 
-        /**
-         * Updates the submit button's disabled state and text.
-         */
         function updateSubmitButtonState() {
-            if (isUploading) {
-                postSubmitButton.disabled = true;
-                postSubmitButton.textContent = 'Uploading...';
-            } else {
-                postSubmitButton.disabled = false;
-                postSubmitButton.textContent = 'Post';
-            }
+            postSubmitButton.disabled = isUploading;
+            postSubmitButton.textContent = isUploading ? 'Uploading...' : 'Save Changes';
         }
 
-        updateCharCount();
-        switchTab('text');
+        // 3. Attach Event Listeners
+        titleInput.addEventListener('input', updateCharCount);
+        textTab.addEventListener('click', () => switchTab('text'));
+        mediaTab.addEventListener('click', () => switchTab('media'));
+        linkTab.addEventListener('click', () => switchTab('link'));
+        selectMediaButton.addEventListener('click', () => mediaUploadInput.click());
+        mediaUploadInput.addEventListener('change', (e) => handleFiles(e.target.files));
 
+        textPanel_Input.addEventListener('input', (e) => contentInput_hidden.value = e.target.value);
+        linkPanel_Input.addEventListener('input', (e) => linkUrlInput_hidden.value = e.target.value);
+
+        // Drag & Drop
+        ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, preventDefaults, false)
+        });
+        function preventDefaults (e) { e.preventDefault(); e.stopPropagation(); }
+        ;['dragenter', 'dragover'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.add('drag-over'), false)
+        });
+        ;['dragleave', 'drop'].forEach(eventName => {
+            dropArea.addEventListener(eventName, () => dropArea.classList.remove('drag-over'), false)
+        });
+        dropArea.addEventListener('drop', (e) => {
+            let dt = e.dataTransfer;
+            handleFiles(dt.files);
+        }, false);
+
+        document.addEventListener('paste', (e) => {
+            if (activePanel !== 'media') return;
+            const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+            let files = [];
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].kind === 'file') {
+                    const file = items[i].getAsFile();
+                    if(file) files.push(file);
+                }
+            }
+            if (files.length > 0) {
+                e.preventDefault();
+                handleFiles(files);
+            }
+        });
+
+        // 4. RUN INITIALIZATION LOGIC (Last Step!)
+        updateCharCount();
+
+        // -- Load Existing Images --
+        /*[# th:each="image : ${post.images}"]*/
+        addExistingPreview(/*[[${image.url}]]*/);
+        /*[/]*/
+
+        // -- Determine Active Tab --
+        const hasImages = document.getElementById('mediaPreview').children.length > 0;
+        const hasLink = document.getElementById('linkPanel_Input').value.trim() !== '';
+
+        if (hasLink) {
+            switchTab('media');
+        } else if (hasLink) {
+            switchTab('link');
+        } else {
+            switchTab('text');
+        }
     });
 </script>
 
