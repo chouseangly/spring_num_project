@@ -142,15 +142,26 @@
 
                         <div th:if="${activity.images != null and not activity.images.isEmpty()}" class="my-4 rounded-lg overflow-hidden"
                              th:with="imageCount=${#lists.size(activity.images)}">
-                            <div class="grid gap-1"
-                                 th:classappend="${imageCount == 1 ? 'grid-cols-1' : (
-                                                imageCount == 2 ? 'grid-cols-2' : (
-                                                imageCount == 3 ? 'grid-cols-3' : (
-                                                imageCount == 4 ? 'grid-cols-2' : 'grid-cols-3')))}">
+
+                            <div class="grid grid-cols-6 gap-1">
                                 <th:block th:each="image, iterStat : ${activity.images}"
-                                          th:if="${imageCount <= 4 or iterStat.count <= 6}">
+                                          th:if="${iterStat.index < 7}">
                                     <div class="relative"
-                                         th:classappend="${imageCount > 1 ? 'aspect-square' : 'max-h-[500px]'}">
+                                         th:classappend="${
+                                            (imageCount == 1) ? 'col-span-6' :
+                                            (imageCount == 2) ? 'col-span-3' :
+                                            (iterStat.index == 0) ? 'col-span-6' :
+                                            (imageCount == 3) ? 'col-span-3' :
+                                            (imageCount == 4) ? 'col-span-2' :
+                                            (imageCount == 5) ? 'col-span-3' :
+                                            (imageCount == 6) ? (iterStat.index < 3 ? 'col-span-3' : 'col-span-2') :
+                                            'col-span-2'
+                                         } + ' ' + (
+                                            ${imageCount == 1} ? 'max-h-[500px]' :
+                                            (${imageCount >= 3 and iterStat.index == 0} ? 'h-96' :
+                                            (${imageCount >= 3 and iterStat.index > 0} ? 'h-54' : 'aspect-square'))
+                                         )">
+
                                         <div th:if="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
                                             <video class="w-full h-full"
                                                    th:classappend="${imageCount == 1 ? 'object-contain bg-black' : 'object-cover'}" controls>
@@ -158,14 +169,14 @@
                                             </video>
                                             <a th:href="${image.url}"
                                                class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 text-white text-4xl"
-                                               th:classappend="${imageCount > 6 and iterStat.count == 6} ? 'opacity-100' : 'opacity-0 hover:opacity-100 hover:bg-opacity-20 transition-opacity'"
+                                               th:classappend="${imageCount > 7 and iterStat.index == 6} ? 'opacity-100' : 'opacity-0 hover:opacity-100 hover:bg-opacity-20 transition-opacity'"
                                                th:attr="data-fancybox='overview-gallery-' + ${activity.id}, data-caption=${activity.title}"
                                                title="View larger">
-                                                <div th:if="${imageCount > 6 and iterStat.count == 6}"
+                                                <div th:if="${imageCount > 7 and iterStat.index == 6}"
                                                      class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10">
-                                                    <span class="text-white text-3xl font-bold" th:text="'+' + (${imageCount} - 6)">+1</span>
+                                                    <span class="text-white text-3xl font-bold" th:text="'+' + (${imageCount} - 7)">+1</span>
                                                 </div>
-                                                <i th:if="${imageCount <= 6 or iterStat.count != 6}" class="fas fa-expand"></i>
+                                                <i th:if="${imageCount <= 7 or iterStat.index != 6}" class="fas fa-expand"></i>
                                             </a>
                                         </div>
                                         <div th:unless="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
@@ -174,9 +185,9 @@
                                                th:attr="data-fancybox='overview-gallery-' + ${activity.id}, data-caption=${activity.title}">
                                                 <img th:src="${image.url}" alt="Post Image" class="w-full h-full"
                                                      th:classappend="${imageCount == 1 ? 'object-contain bg-gray-100' : 'object-cover'}">
-                                                <div th:if="${imageCount > 6 and iterStat.count == 6}"
+                                                <div th:if="${imageCount > 7 and iterStat.index == 6}"
                                                      class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10 cursor-pointer">
-                                                    <span class="text-white text-3xl font-bold" th:text="'+' + (${imageCount} - 6)">+1</span>
+                                                    <span class="text-white text-3xl font-bold" th:text="'+' + (${imageCount} - 7)">+1</span>
                                                 </div>
                                             </a>
                                         </div>
@@ -185,7 +196,7 @@
                             </div>
                             <div class="hidden">
                                 <th:block th:each="image, iterStat : ${activity.images}"
-                                          th:if="${imageCount > 6 and iterStat.count > 6}">
+                                          th:if="${imageCount > 7 and iterStat.index >= 7}">
                                     <a th:href="${image.url}"
                                        th:attr="data-fancybox='overview-gallery-' + ${activity.id}, data-caption=${activity.title}">
                                         Image <span th:text="${iterStat.count}"></span>
@@ -304,15 +315,25 @@
 
                     <div th:if="${post.images != null and not post.images.isEmpty()}" class="my-4 rounded-lg overflow-hidden"
                          th:with="imageCount=${#lists.size(post.images)}">
-                        <div class="grid gap-1"
-                             th:classappend="${imageCount == 1 ? 'grid-cols-1' : (
-                                                imageCount == 2 ? 'grid-cols-2' : (
-                                                imageCount == 3 ? 'grid-cols-3' : (
-                                                imageCount == 4 ? 'grid-cols-2' : 'grid-cols-3')))}">
+                        <div class="grid grid-cols-6 gap-1">
                             <th:block th:each="image, iterStat : ${post.images}"
-                                      th:if="${imageCount <= 4 or iterStat.count <= 6}">
+                                      th:if="${iterStat.index < 7}">
                                 <div class="relative"
-                                     th:classappend="${imageCount > 1 ? 'aspect-square' : 'max-h-[500px]'}">
+                                     th:classappend="${
+                                        (imageCount == 1) ? 'col-span-6' :
+                                        (imageCount == 2) ? 'col-span-3' :
+                                        (iterStat.index == 0) ? 'col-span-6' :
+                                        (imageCount == 3) ? 'col-span-3' :
+                                        (imageCount == 4) ? 'col-span-2' :
+                                        (imageCount == 5) ? 'col-span-3' :
+                                        (imageCount == 6) ? (iterStat.index < 3 ? 'col-span-3' : 'col-span-2') :
+                                        'col-span-2'
+                                     } + ' ' + (
+                                        ${imageCount == 1} ? 'max-h-[500px]' :
+                                        (${imageCount >= 3 and iterStat.index == 0} ? 'h-96' :
+                                        (${imageCount >= 3 and iterStat.index > 0} ? 'h-54' : 'aspect-square'))
+                                     )">
+
                                     <div th:if="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
                                         <video class="w-full h-full"
                                                th:classappend="${imageCount == 1 ? 'object-contain bg-black' : 'object-cover'}" controls>
@@ -320,15 +341,15 @@
                                         </video>
                                         <a th:href="${image.url}"
                                            class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 text-white text-4xl"
-                                           th:classappend="${imageCount > 6 and iterStat.count == 6} ? 'opacity-100' : 'opacity-0 hover:opacity-100 hover:bg-opacity-20 transition-opacity'"
+                                           th:classappend="${imageCount > 7 and iterStat.index == 6} ? 'opacity-100' : 'opacity-0 hover:opacity-100 hover:bg-opacity-20 transition-opacity'"
                                            th:attr="data-fancybox='post-gallery-' + ${post.id}, data-caption=${post.title}"
                                            title="View larger">
-                                            <div th:if="${imageCount > 6 and iterStat.count == 6}"
+                                            <div th:if="${imageCount > 7 and iterStat.index == 6}"
                                                  class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10">
                                                 <span class="text-white text-3xl font-bold"
-                                                      th:text="'+' + (${imageCount} - 6)">+1</span>
+                                                      th:text="'+' + (${imageCount} - 7)">+1</span>
                                             </div>
-                                            <i th:if="${imageCount <= 6 or iterStat.count != 6}" class="fas fa-expand"></i>
+                                            <i th:if="${imageCount <= 7 or iterStat.index != 6}" class="fas fa-expand"></i>
                                         </a>
                                     </div>
                                     <div th:unless="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
@@ -337,10 +358,10 @@
                                            th:attr="data-fancybox='post-gallery-' + ${post.id}, data-caption=${post.title}">
                                             <img th:src="${image.url}" alt="Post Image" class="w-full h-full"
                                                  th:classappend="${imageCount == 1 ? 'object-contain bg-gray-100' : 'object-cover'}">
-                                            <div th:if="${imageCount > 6 and iterStat.count == 6}"
+                                            <div th:if="${imageCount > 7 and iterStat.index == 6}"
                                                  class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10 cursor-pointer">
                                                 <span class="text-white text-3xl font-bold"
-                                                      th:text="'+' + (${imageCount} - 6)">+1</span>
+                                                      th:text="'+' + (${imageCount} - 7)">+1</span>
                                             </div>
                                         </a>
                                     </div>
@@ -349,7 +370,7 @@
                         </div>
                         <div class="hidden">
                             <th:block th:each="image, iterStat : ${post.images}"
-                                      th:if="${imageCount > 6 and iterStat.count > 6}">
+                                      th:if="${imageCount > 7 and iterStat.index >= 7}">
                                 <a th:href="${image.url}"
                                    th:attr="data-fancybox='post-gallery-' + ${post.id}, data-caption=${post.title}">
                                     Image <span th:text="${iterStat.count}"></span>
@@ -442,18 +463,34 @@
 
                     <div th:if="${post.images != null and not post.images.isEmpty()}" class="my-4 rounded-lg overflow-hidden"
                          th:with="imageCount=${#lists.size(post.images)}">
-                        <div class="grid gap-1"
-                             th:classappend="${imageCount == 1 ? 'grid-cols-1' : (imageCount == 2 ? 'grid-cols-2' : 'grid-cols-3')}">
-                            <th:block th:each="image, iterStat : ${post.images}" th:if="${iterStat.count <= 3}">
-                                <div class="relative" th:classappend="${imageCount > 1 ? 'aspect-square' : 'max-h-[500px]'}">
+                        <div class="grid grid-cols-6 gap-1">
+                            <th:block th:each="image, iterStat : ${post.images}" th:if="${iterStat.index < 7}">
+                                <div class="relative" th:classappend="${
+                                    (imageCount == 1) ? 'col-span-6' :
+                                    (imageCount == 2) ? 'col-span-3' :
+                                    (iterStat.index == 0) ? 'col-span-6' :
+                                    (imageCount == 3) ? 'col-span-3' :
+                                    (imageCount == 4) ? 'col-span-2' :
+                                    (imageCount == 5) ? 'col-span-3' :
+                                    (imageCount == 6) ? (iterStat.index < 3 ? 'col-span-3' : 'col-span-2') :
+                                    'col-span-2'
+                                } + ' ' + (
+                                    ${imageCount == 1} ? 'max-h-[500px]' :
+                                    (${imageCount >= 3 and iterStat.index == 0} ? 'h-96' :
+                                    (${imageCount >= 3 and iterStat.index > 0} ? 'h-54' : 'aspect-square'))
+                                )">
                                     <div th:if="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
                                         <video class="w-full h-full object-cover" controls>
                                             <source th:src="${image.url}" type="video/mp4">
                                         </video>
                                     </div>
                                     <div th:unless="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
-                                        <a th:href="${image.url}" data-fancybox="gallery" class="block w-full h-full">
+                                        <a th:href="${image.url}" data-fancybox="gallery" class="block w-full h-full relative">
                                             <img th:src="${image.url}" class="w-full h-full object-cover">
+                                            <div th:if="${imageCount > 7 and iterStat.index == 6}"
+                                                 class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10 cursor-pointer">
+                                                <span class="text-white text-3xl font-bold" th:text="'+' + (${imageCount} - 7)">+1</span>
+                                            </div>
                                         </a>
                                     </div>
                                 </div>
