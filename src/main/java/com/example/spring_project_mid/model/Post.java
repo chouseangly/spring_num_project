@@ -1,5 +1,3 @@
-// In: chouseangly/spring_num_project/spring_num_project-main/src/main/java/com/example/spring_project_mid/model/Post.java
-
 package com.example.spring_project_mid.model;
 
 import jakarta.persistence.*;

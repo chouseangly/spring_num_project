@@ -26,6 +26,9 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
 
+    /**
+     * Registers a new user and sends an OTP to their email for verification.
+     */
     public void register(RegisterRequest request) {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new RuntimeException("Username already taken");
@@ -49,6 +52,9 @@ public class AuthService {
         emailService.sendOtpEmail(user.getEmail(), otp);
     }
 
+    /**
+     * Verifies the OTP provided by the user.
+     */
     public AuthResponse verifyOtp(VerifyOtpRequest request) {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -75,6 +81,9 @@ public class AuthService {
                 .build();
     }
 
+    /**
+     * Authenticates a user and returns a JWT token upon successful login.
+     */
     public AuthResponse login(LoginRequest request) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
@@ -97,6 +106,9 @@ public class AuthService {
                 .build();
     }
 
+    /**
+     * Initiates the forgot password process by generating a reset token and sending it via email.
+     */
     public void forgotPassword(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with this email"));
@@ -110,6 +122,9 @@ public class AuthService {
         emailService.sendPasswordResetEmail(email, resetLink);
     }
 
+    /**
+     * Resets the user's password using the provided reset token.
+     */
     public void resetPassword(String token, String newPassword) {
         User user = userRepository.findByResetPasswordToken(token)
                 .orElseThrow(() -> new RuntimeException("Invalid or expired reset token"));
@@ -124,6 +139,9 @@ public class AuthService {
         userRepository.save(user);
     }
 
+    /**
+     * Generates a 6-digit OTP.
+     */
     private String generateOtp() {
         return String.format("%06d", new Random().nextInt(999999));
     }

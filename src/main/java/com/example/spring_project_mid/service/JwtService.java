@@ -28,6 +28,12 @@ public class JwtService {
         this.verifier = JWT.require(algorithm).build();
     }
 
+    /**
+     * Generates a JWT token for the given username.
+     *
+     * @param username the username for which to generate the token
+     * @return the generated JWT token
+     */
     public String generateToken(String username) {
         return JWT.create()
                 .withSubject(username)
@@ -36,6 +42,13 @@ public class JwtService {
                 .sign(algorithm);
     }
 
+    /**
+     * Validates the given JWT token.
+     *
+     * @param token the JWT token to validate
+     * @return the decoded JWT if valid
+     * @throws RuntimeException if the token is invalid
+     */
     public DecodedJWT validateToken(String token) {
         try {
             return verifier.verify(token);
@@ -44,6 +57,12 @@ public class JwtService {
         }
     }
 
+    /**
+     * Extracts the username from the given JWT token.
+     *
+     * @param token the JWT token
+     * @return the username extracted from the token
+     */
     public String getUsernameFromToken(String token) {
         DecodedJWT decodedJWT = validateToken(token);
         return decodedJWT.getSubject();

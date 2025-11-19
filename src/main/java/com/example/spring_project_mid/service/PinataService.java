@@ -56,13 +56,10 @@ public class PinataService {
                             ContentType.DEFAULT_BINARY,
                             file.getOriginalFilename()
                     )
-                    // You can add Pinata options here if needed, e.g.:
-                    // .addTextBody("pinataOptions", "{\"cidVersion\": 1}")
                     .build();
 
             httpPost.setEntity(mimeEntity);
 
-            // 4. Execute the request
             log.info("Executing POST request to Pinata API...");
             String responseString = httpClient.execute(httpPost, response -> {
                 log.info("Received response from Pinata. Status: {}", response.getCode());
@@ -74,7 +71,6 @@ public class PinataService {
                 return responseBody;
             });
 
-            // 5. Parse the JSON response
             log.info("Pinata response body: {}", responseString);
             PinataResponse pinataResponse = objectMapper.readValue(responseString, PinataResponse.class);
             String ipfsHash = pinataResponse.getIpfsHash();
@@ -83,7 +79,6 @@ public class PinataService {
                 throw new IOException("Failed to parse IpfsHash from Pinata response.");
             }
 
-            // 6. Construct and return the full gateway URL
             String gatewayUrl = ipfsGatewayUrl + ipfsHash;
             log.info("File uploaded successfully. Gateway URL: {}", gatewayUrl);
             return gatewayUrl;
