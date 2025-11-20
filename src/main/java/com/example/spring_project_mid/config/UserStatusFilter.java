@@ -22,31 +22,31 @@ public class UserStatusFilter extends OncePerRequestFilter {
 
     private final UserRepository userRepository;
 
+    /**
+     * Filters incoming HTTP requests to check if the authenticated user's account is enabled.
+     * If the account is disabled, it clears the security context, invalidates the session,
+     * and redirects the user to the login page with an error message.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 
-        // Check if there is a logged-in user (who is not anonymous)
         if (auth != null && auth.isAuthenticated() && !(auth instanceof AnonymousAuthenticationToken)) {
 
             String username = auth.getName();
             Optional<User> dbUser = userRepository.findByUsername(username);
 
-            // If user exists in DB but is NOT enabled (Suspended)
             if (dbUser.isPresent() && !dbUser.get().isEnabled()) {
-                // 1. Clear the security context (Log them out)
                 SecurityContextHolder.clearContext();
 
-                // 2. Invalidate the session (Destroy the cookie)
                 if (request.getSession(false) != null) {
                     request.getSession().invalidate();
                 }
 
-                // 3. Redirect to login page with an error
                 response.sendRedirect("/login?error");
-                return; // Stop the request here
+                return;
             }
         }
 

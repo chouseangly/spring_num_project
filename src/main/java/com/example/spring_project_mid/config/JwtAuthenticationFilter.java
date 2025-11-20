@@ -24,6 +24,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
+    /**
+     * Handles the filtering of incoming HTTP requests to authenticate users based on JWT tokens.
+     */
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -45,8 +48,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-                // --- FIX STARTS HERE ---
-                // Check if the user is enabled (not suspended)
                 if (userDetails.isEnabled()) {
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                             userDetails,
@@ -56,10 +57,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 } else {
-                    // Optional: Log that a suspended user tried to access
                     logger.warn("Suspended user tried to access: " + username);
                 }
-                // --- FIX ENDS HERE ---
             }
         } catch (Exception e) {
             logger.warn("Cannot set user authentication: {}", e);

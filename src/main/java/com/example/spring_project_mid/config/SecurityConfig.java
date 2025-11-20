@@ -29,33 +29,35 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final UserRepository userRepository;
-    // Add the new filter here (Autowired by Lombok)
     private final UserStatusFilter userStatusFilter;
 
+    /**
+     * Configures the security filter chain for HTTP requests.
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // ... existing matchers ...
-                        .requestMatchers("/login", "/",
+                        .requestMatchers(
+                                "/login", "/",
                                 "/register", "/verify-otp",
                                 "/forgot-password", "/reset-password",
-                                "/api/auth/**", "/css/**", "/js/**",
-                                "/images/**", "/profile/edit").permitAll()
+                                "/api/auth/**",
+                                "/css/**", "/js/**", "/images/**",
+                                "/profile/edit",
+                                "/favicon.ico"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
-                // ... formLogin config ...
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
                         .defaultSuccessUrl("/", true)
 
-                        // --- REPLACE .failureUrl("/login?error") WITH THIS BLOCK ---
                         .failureHandler((request, response, exception) -> {
                             String targetUrl = "/login?error"; // Default generic error
 
-                            // Check if the error is because the account is disabled/suspended
                             if (exception instanceof DisabledException) {
                                 targetUrl = "/login?disabled";
                             }
@@ -64,7 +66,6 @@ public class SecurityConfig {
                         })
                         .permitAll()
                 )
-                // ... logout config ...
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
@@ -72,19 +73,15 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID", "remember-me")
                         .permitAll()
                 )
-                // ... existing configs ...
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authenticationProvider(authenticationProvider())
 
-                // ADD THIS LINE: Check for suspension AFTER the user is identified
                 .addFilterAfter(userStatusFilter, UsernamePasswordAuthenticationFilter.class)
 
-                // Existing JWT filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
-
 
     /**
      * Loads user details by username or email.

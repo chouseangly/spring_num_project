@@ -41,6 +41,9 @@ public class GlobalControllerAdvice {
         return notifications.stream().filter(n -> !n.isRead()).count();
     }
 
+    /**
+     * Adds the current request URI to the model.
+     */
     @ModelAttribute("requestURI")
     public String requestURI(HttpServletRequest request) {
         return request.getRequestURI();

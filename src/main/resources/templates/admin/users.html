@@ -26,11 +26,56 @@
                 <table class="w-full text-left text-sm text-gray-600">
                     <thead class="bg-gray-50 text-gray-800 font-semibold uppercase text-xs border-b border-gray-200">
                     <tr>
-                        <th class="px-6 py-3">ID</th>
-                        <th class="px-6 py-3">User</th>
-                        <th class="px-6 py-3">Email</th>
-                        <th class="px-6 py-3">Role</th>
-                        <th class="px-6 py-3">Status</th>
+                        <th class="px-6 py-3">
+                            <a th:href="@{/admin/users(sortField='id', sortDir=${sortField == 'id' ? reverseSortDir : 'asc'})}"
+                               class="flex items-center gap-1 hover:text-red-600">
+                                ID
+                                <i th:if="${sortField == 'id'}"
+                                   th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                                <i th:unless="${sortField == 'id'}" class="fas fa-sort text-gray-300"></i>
+                            </a>
+                        </th>
+
+                        <th class="px-6 py-3">
+                            <a th:href="@{/admin/users(sortField='username', sortDir=${sortField == 'username' ? reverseSortDir : 'asc'})}"
+                               class="flex items-center gap-1 hover:text-red-600">
+                                User
+                                <i th:if="${sortField == 'username'}"
+                                   th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                                <i th:unless="${sortField == 'username'}" class="fas fa-sort text-gray-300"></i>
+                            </a>
+                        </th>
+
+                        <th class="px-6 py-3">
+                            <a th:href="@{/admin/users(sortField='email', sortDir=${sortField == 'email' ? reverseSortDir : 'asc'})}"
+                               class="flex items-center gap-1 hover:text-red-600">
+                                Email
+                                <i th:if="${sortField == 'email'}"
+                                   th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                                <i th:unless="${sortField == 'email'}" class="fas fa-sort text-gray-300"></i>
+                            </a>
+                        </th>
+
+                        <th class="px-6 py-3">
+                            <a th:href="@{/admin/users(sortField='role', sortDir=${sortField == 'role' ? reverseSortDir : 'asc'})}"
+                               class="flex items-center gap-1 hover:text-red-600">
+                                Role
+                                <i th:if="${sortField == 'role'}"
+                                   th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                                <i th:unless="${sortField == 'role'}" class="fas fa-sort text-gray-300"></i>
+                            </a>
+                        </th>
+
+                        <th class="px-6 py-3">
+                            <a th:href="@{/admin/users(sortField='enabled', sortDir=${sortField == 'enabled' ? reverseSortDir : 'asc'})}"
+                               class="flex items-center gap-1 hover:text-red-600">
+                                Status
+                                <i th:if="${sortField == 'enabled'}"
+                                   th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></i>
+                                <i th:unless="${sortField == 'enabled'}" class="fas fa-sort text-gray-300"></i>
+                            </a>
+                        </th>
+
                         <th class="px-6 py-3 text-right">Actions</th>
                     </tr>
                     </thead>
