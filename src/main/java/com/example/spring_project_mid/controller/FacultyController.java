@@ -23,6 +23,9 @@ public class FacultyController {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
 
+    /**
+     * Displays the faculty admin dashboard with posts related to the faculty.
+     */
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal User principal, Model model) {
         User user = userRepository.findById(principal.getId())
@@ -43,6 +46,9 @@ public class FacultyController {
         return "faculty/dashboard";
     }
 
+    /**
+     * Deletes a post if it belongs to the faculty of the authenticated user.
+     */
     @PostMapping("/posts/{id}/delete")
     public String deletePost(@PathVariable Long id, @AuthenticationPrincipal User principal) {
         try {
