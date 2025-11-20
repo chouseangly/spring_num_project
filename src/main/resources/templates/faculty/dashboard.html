@@ -1,10 +1,23 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Faculty Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <script th:inline="none">
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body class="bg-gray-100">
 
@@ -48,11 +61,11 @@
                     <td class="px-6 py-4">
                         <div class="flex items-center gap-2">
                             <img th:src="${post.user.avatarUrl ?: 'https://ui-avatars.com/api/?name=' + post.user.username}"
-                                 class="w-6 h-6 rounded-full bg-gray-200">
+                                 class="w-6 h-6 rounded-full bg-gray-200" alt="Avatar" />
                             <span th:text="${post.user.username}">User</span>
                         </div>
                     </td>
-                    <td class="px-6 py-4" th:text="${#temporals.format(post.createdAt, 'dd-MMM-yyyy')}">Date</td>
+                    <td class="px-6 py-4" th:text="${post.createdAt != null ? #temporals.format(post.createdAt, 'dd-MMM-yyyy') : 'N/A'}">Date</td>
                     <td class="px-6 py-4 text-right">
                         <form th:action="@{/faculty/posts/{id}/delete(id=${post.id})}" method="post"
                               onsubmit="return confirm('Moderate: Delete this post permanently?');">
@@ -62,9 +75,12 @@
                         </form>
                     </td>
                 </tr>
-                <tr th:if="${posts.isEmpty()}">
+                <tr th:if="${#lists.isEmpty(posts)}">
                     <td colspan="4" class="px-6 py-8 text-center text-gray-500">
-                        No posts found in this faculty.
+                        <div class="flex flex-col items-center justify-center">
+                            <i class="fas fa-inbox fa-3x mb-3 text-gray-300"></i>
+                            <p>No posts found in this faculty.</p>
+                        </div>
                     </td>
                 </tr>
                 </tbody>
