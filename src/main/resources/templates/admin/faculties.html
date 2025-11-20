@@ -9,21 +9,8 @@
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="flex max-w-7xl mx-auto mt-10 gap-6 px-4">
-    <div class="w-64 flex-shrink-0">
-        <div class="bg-white rounded-xl shadow-md p-4">
-            <nav class="space-y-1">
-                <a th:href="@{/admin}" class="flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
-                    <i class="fas fa-chart-line w-6"></i> Dashboard
-                </a>
-                <a th:href="@{/admin/users}" class="flex items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-md">
-                    <i class="fas fa-users w-6"></i> Users
-                </a>
-                <a th:href="@{/admin/faculties}" class="flex items-center px-2 py-2 text-sm font-medium text-red-600 bg-red-50 rounded-md">
-                    <i class="fas fa-university w-6"></i> Faculties
-                </a>
-            </nav>
-        </div>
-    </div>
+
+    <div th:replace="~{fragments/admin-sidebar :: sidebar}"></div>
 
     <div class="flex-1">
         <div class="bg-white rounded-xl shadow-sm p-6 mb-6">
@@ -53,11 +40,11 @@
                     <td class="px-6 py-4 font-medium" th:text="${faculty.name}">CS</td>
                     <td class="px-6 py-4 text-gray-500" th:text="${faculty.description}">Desc</td>
                     <td class="px-6 py-4 text-right">
-                        <form th:action="@{/admin/faculties/{id}/delete(id=${faculty.id})}" method="post">
-                            <button type="submit" class="text-red-600 hover:text-red-800" onclick="return confirm('Delete this faculty?')">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
+                        <button type="button"
+                                th:onclick="'openDeleteModal(\'/admin/faculties/' + ${faculty.id} + '/delete\')'"
+                                class="text-red-600 hover:text-red-800">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </td>
                 </tr>
                 </tbody>
@@ -65,5 +52,49 @@
         </div>
     </div>
 </div>
+
+<div id="deleteModal" class="relative z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-exclamation-triangle text-red-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                            <h3 class="text-lg font-semibold leading-6 text-gray-900" id="modal-title">Delete Faculty</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">Are you sure? Deleting a faculty might affect users and posts assigned to it.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <form id="deleteForm" method="post" action="">
+                        <button type="submit" class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto">Delete</button>
+                    </form>
+                    <button type="button" onclick="closeDeleteModal()" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDeleteModal(actionUrl) {
+        const modal = document.getElementById('deleteModal');
+        const form = document.getElementById('deleteForm');
+        form.action = actionUrl;
+        modal.classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.add('hidden');
+    }
+</script>
+
 </body>
 </html>
