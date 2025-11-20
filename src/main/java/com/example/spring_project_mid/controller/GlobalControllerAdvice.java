@@ -3,6 +3,7 @@ package com.example.spring_project_mid.controller;
 import com.example.spring_project_mid.model.Notification;
 import com.example.spring_project_mid.model.User;
 import com.example.spring_project_mid.repository.NotificationRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -38,5 +39,10 @@ public class GlobalControllerAdvice {
             return 0;
         }
         return notifications.stream().filter(n -> !n.isRead()).count();
+    }
+
+    @ModelAttribute("requestURI")
+    public String requestURI(HttpServletRequest request) {
+        return request.getRequestURI();
     }
 }
