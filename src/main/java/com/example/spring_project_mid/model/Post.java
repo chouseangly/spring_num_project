@@ -55,6 +55,7 @@ public class Post {
     private Set<SavedPost> savedPosts = new HashSet<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("id ASC")
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Image> images = new HashSet<>();
