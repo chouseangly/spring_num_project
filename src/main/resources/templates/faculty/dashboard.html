@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Faculty Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }</script>
+</head>
+<body class="bg-gray-100">
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="max-w-7xl mx-auto p-8">
+
+    <div class="bg-white rounded-xl shadow-sm p-6 mb-6 flex justify-between items-center border-l-4 border-blue-600">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">Faculty Portal</h1>
+            <p class="text-gray-500" th:if="${faculty != null}">
+                Managing: <span class="font-bold text-blue-600" th:text="${faculty.name}">Faculty Name</span>
+            </p>
+            <p class="text-red-500" th:if="${error}" th:text="${error}"></p>
+        </div>
+        <div class="p-3 bg-blue-50 text-blue-600 rounded-full">
+            <i class="fas fa-university fa-2x"></i>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <h2 class="text-lg font-bold text-gray-800">Recent Posts</h2>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm text-gray-600">
+                <thead class="bg-gray-50 text-gray-800 font-semibold uppercase text-xs border-b border-gray-200">
+                <tr>
+                    <th class="px-6 py-3">Title</th>
+                    <th class="px-6 py-3">Author</th>
+                    <th class="px-6 py-3">Date</th>
+                    <th class="px-6 py-3 text-right">Actions</th>
+                </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                <tr th:each="post : ${posts}" class="hover:bg-gray-50">
+                    <td class="px-6 py-4">
+                        <span class="font-medium text-gray-900 block truncate w-64" th:text="${post.title}">Title</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-2">
+                            <img th:src="${post.user.avatarUrl ?: 'https://ui-avatars.com/api/?name=' + post.user.username}"
+                                 class="w-6 h-6 rounded-full bg-gray-200">
+                            <span th:text="${post.user.username}">User</span>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4" th:text="${#temporals.format(post.createdAt, 'dd-MMM-yyyy')}">Date</td>
+                    <td class="px-6 py-4 text-right">
+                        <form th:action="@{/faculty/posts/{id}/delete(id=${post.id})}" method="post"
+                              onsubmit="return confirm('Moderate: Delete this post permanently?');">
+                            <button type="submit" class="text-red-600 hover:bg-red-50 px-3 py-1 rounded hover:border-red-100 border border-transparent transition-all">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                <tr th:if="${posts.isEmpty()}">
+                    <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                        No posts found in this faculty.
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

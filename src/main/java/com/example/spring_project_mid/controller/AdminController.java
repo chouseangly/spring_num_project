@@ -2,6 +2,7 @@ package com.example.spring_project_mid.controller;
 
 import com.example.spring_project_mid.model.Faculty;
 import com.example.spring_project_mid.model.User;
+import com.example.spring_project_mid.model.enums.Role;
 import com.example.spring_project_mid.repository.FacultyRepository;
 import com.example.spring_project_mid.repository.PostRepository;
 import com.example.spring_project_mid.repository.UserRepository;
@@ -71,5 +72,40 @@ public class AdminController {
     public String deleteFaculty(@PathVariable Long id) {
         facultyRepository.deleteById(id);
         return "redirect:/admin/faculties";
+    }
+
+    @GetMapping("/users/{id}/edit")
+    public String editUserForm(@PathVariable Long id, Model model) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        model.addAttribute("user", user);
+        model.addAttribute("allFaculties", facultyRepository.findAll()); // For dropdown
+        model.addAttribute("allRoles", Role.values()); // For dropdown
+        return "admin/user-edit";
+    }
+
+    @PostMapping("/users/{id}/update")
+    public String updateUser(@PathVariable Long id,
+                             @RequestParam("role") Role role,
+                             @RequestParam(value = "facultyId", required = false) Long facultyId) {
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 1. Update Role
+        user.setRole(role);
+
+        // 2. Update Faculty
+        if (facultyId != null) {
+            Faculty faculty = facultyRepository.findById(facultyId)
+                    .orElse(null);
+            user.setFaculty(faculty);
+        } else {
+            user.setFaculty(null); // Clear faculty if none selected
+        }
+
+        userRepository.save(user);
+        return "redirect:/admin/users";
     }
 }
