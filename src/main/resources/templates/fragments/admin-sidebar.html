@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<div th:fragment="sidebar" class="w-64 flex-shrink-0 hidden md:block">
+    <div class="bg-white rounded-xl shadow-md p-4 sticky top-24">
+        <h3 class="font-bold text-gray-500 uppercase text-xs mb-4 px-2">Menu</h3>
+        <nav class="space-y-1">
+            <a th:href="@{/admin}"
+               th:classappend="${#request.requestURI == '/admin'} ? 'bg-red-50 text-red-600' : 'text-gray-600 hover:bg-gray-50'"
+               class="flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors">
+                <i class="fas fa-chart-line w-6 text-center"></i>
+                <span class="ml-3">Dashboard</span>
+            </a>
+
+            <a th:href="@{/admin/users}"
+               th:classappend="${#request.requestURI.startsWith('/admin/users')} ? 'bg-red-50 text-red-600' : 'text-gray-600 hover:bg-gray-50'"
+               class="flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors">
+                <i class="fas fa-users w-6 text-center"></i>
+                <span class="ml-3">Users</span>
+            </a>
+
+            <a th:href="@{/admin/faculties}"
+               th:classappend="${#request.requestURI.startsWith('/admin/faculties')} ? 'bg-red-50 text-red-600' : 'text-gray-600 hover:bg-gray-50'"
+               class="flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors">
+                <i class="fas fa-university w-6 text-center"></i>
+                <span class="ml-3">Faculties</span>
+            </a>
+        </nav>
+    </div>
+</div>
+</body>
+</html>
