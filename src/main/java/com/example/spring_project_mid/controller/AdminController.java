@@ -7,6 +7,7 @@ import com.example.spring_project_mid.repository.FacultyRepository;
 import com.example.spring_project_mid.repository.PostRepository;
 import com.example.spring_project_mid.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -37,8 +38,19 @@ public class AdminController {
      * Lists all users for admin management.
      */
     @GetMapping("/users")
-    public String listUsers(Model model) {
-        model.addAttribute("users", userRepository.findAll());
+    public String listUsers(Model model,
+                            @RequestParam(value = "sortField", defaultValue = "id") String sortField,
+                            @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir) {
+
+        Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ?
+                Sort.by(sortField).ascending() : Sort.by(sortField).descending();
+
+        model.addAttribute("users", userRepository.findByRoleNot(Role.SUPER_ADMIN, sort));
+
+        model.addAttribute("sortField", sortField);
+        model.addAttribute("sortDir", sortDir);
+        model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+
         return "admin/users";
     }
 
