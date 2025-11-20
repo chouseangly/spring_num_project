@@ -36,6 +36,16 @@
                          class="mb-4 p-3 bg-green-100 font-semibold text-green-700 rounded-lg">
                         <p th:text="${successMessage}">Success!</p>
                     </div>
+                    <div th:if="${param.disabled}"
+                         class="mb-4 p-3 bg-yellow-100 font-semibold text-yellow-800 rounded-lg border border-yellow-200">
+                        <div class="flex items-center gap-3">
+                            <i class="fas fa-exclamation-triangle fa-lg"></i>
+                            <div>
+                                <p class="font-bold">Access Denied</p>
+                                <p class="text-sm">Your account is not verified or has been suspended by an admin.</p>
+                            </div>
+                        </div>
+                    </div>
                     <div th:if="${param.error}"
                          class="mb-4 p-3 bg-red-100 font-semibold text-red-700 rounded-lg">
                         <p>Invalid email or password.</p>

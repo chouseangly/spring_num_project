@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -19,44 +20,51 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity // For @PreAuthorize
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
     private final UserRepository userRepository;
+    // Add the new filter here (Autowired by Lombok)
+    private final UserStatusFilter userStatusFilter;
 
-    /**
-     * Configures the security filter chain for HTTP requests.
-     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthFilter) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/login",
-                                "/",
-                                "/register",
-                                "/verify-otp",
-                                "/forgot-password",
-                                "/reset-password",
-                                "/api/auth/**",
-                                "/css/**",
-                                "/js/**",
-                                "/images/**",
-                                "/profile/edit"
-                        ).permitAll()
+                        // ... existing matchers ...
+                        .requestMatchers("/login", "/",
+                                "/register", "/verify-otp",
+                                "/forgot-password", "/reset-password",
+                                "/api/auth/**", "/css/**", "/js/**",
+                                "/images/**", "/profile/edit").permitAll()
                         .anyRequest().authenticated()
                 )
+                // ... formLogin config ...
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
                         .defaultSuccessUrl("/", true)
-                        .failureUrl("/login?error")
+
+                        // --- REPLACE .failureUrl("/login?error") WITH THIS BLOCK ---
+                        .failureHandler((request, response, exception) -> {
+                            String targetUrl = "/login?error"; // Default generic error
+
+                            // Check if the error is because the account is disabled/suspended
+                            if (exception instanceof DisabledException) {
+                                targetUrl = "/login?disabled";
+                            }
+
+                            response.sendRedirect(targetUrl);
+                        })
                         .permitAll()
                 )
+                // ... logout config ...
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/login?logout")
@@ -64,17 +72,19 @@ public class SecurityConfig {
                         .deleteCookies("JSESSIONID", "remember-me")
                         .permitAll()
                 )
-                .rememberMe(rememberMe -> rememberMe
-                        .key("your-very-secret-key-to-hash-the-cookie")
-                        .tokenValiditySeconds(60 * 60 * 24 * 7)
-                        .userDetailsService(userDetailsService())
-                )
+                // ... existing configs ...
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .authenticationProvider(authenticationProvider())
+
+                // ADD THIS LINE: Check for suspension AFTER the user is identified
+                .addFilterAfter(userStatusFilter, UsernamePasswordAuthenticationFilter.class)
+
+                // Existing JWT filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
+
 
     /**
      * Loads user details by username or email.

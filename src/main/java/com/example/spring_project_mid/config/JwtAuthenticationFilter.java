@@ -24,9 +24,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
 
-    /**
-     * Filters incoming requests to validate JWT tokens and set authentication in the security context.
-     */
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
@@ -42,19 +39,27 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-            final String jwt = authHeader.substring(7); // After "Bearer "
+            final String jwt = authHeader.substring(7);
             final String username = jwtService.getUsernameFromToken(jwt);
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null, // We don't have credentials
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                // --- FIX STARTS HERE ---
+                // Check if the user is enabled (not suspended)
+                if (userDetails.isEnabled()) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    // Optional: Log that a suspended user tried to access
+                    logger.warn("Suspended user tried to access: " + username);
+                }
+                // --- FIX ENDS HERE ---
             }
         } catch (Exception e) {
             logger.warn("Cannot set user authentication: {}", e);

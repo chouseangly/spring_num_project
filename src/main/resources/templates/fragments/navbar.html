@@ -26,10 +26,6 @@
                     </div>
                     <span class="text-xl font-bold text-red-600 hidden md:block">NUM Community</span>
                 </a>
-<!--                <a th:href="@{/}" class="hidden sm:flex items-center space-x-2 bg-gray-100 rounded-full px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-200">-->
-<!--                    <i class="fas fa-home"></i>-->
-<!--                    <span>Home</span>-->
-<!--                </a>-->
             </div>
 
             <div class="flex-1 px-4 lg:px-12">
@@ -53,11 +49,9 @@
                     </a>
 
                     <div class="relative">
-
                         <button type="button" id="notification-button" title="Notifications"
                                 class="w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100 relative">
                             <i class="fas fa-bell fa-lg"></i>
-
                             <span th:if="${unreadNotificationCount > 0}"
                                   class="absolute top-0 right-0 block h-5 w-5 rounded-full bg-red-600 text-white text-xs font-bold flex items-center justify-center ring-2 ring-white"
                                   th:text="${unreadNotificationCount}">
@@ -66,30 +60,22 @@
 
                         <div id="notification-dropdown"
                              class="hidden absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-lg shadow-xl border border-gray-200 z-50">
-
                             <div class="p-4 border-b border-gray-100">
                                 <h3 class="text-lg font-semibold text-gray-800">Notifications</h3>
                             </div>
-
                             <ul class="max-h-96 overflow-y-auto">
                                 <li th:each="notif : ${userNotifications}"
                                     class="p-4 border-b border-gray-100 hover:bg-gray-50"
                                     th:classappend="${!notif.isRead} ? 'bg-blue-50' : ''">
-                                    <p class="text-sm text-gray-800" th:text="${notif.message}">
-                                        Notification message...
-                                    </p>
+                                    <p class="text-sm text-gray-800" th:text="${notif.message}">Notification message...</p>
                                     <span class="text-xs text-gray-500"
-                                          th:text="${#temporals.format(notif.createdAt, 'dd-MMM-yyyy HH:mm')}">
-                                        Timestamp
-                                    </span>
+                                          th:text="${#temporals.format(notif.createdAt, 'dd-MMM-yyyy HH:mm')}">Timestamp</span>
                                 </li>
-
                                 <li th:if="${#lists.isEmpty(userNotifications)}" class="p-6 text-center text-gray-500">
                                     <i class="fas fa-bell-slash fa-2x mb-2"></i>
                                     <p>You have no new notifications.</p>
                                 </li>
                             </ul>
-
                             <div class="p-2 bg-gray-50 rounded-b-lg">
                                 <a th:href="@{/notifications}"
                                    class="block w-full text-center text-sm font-medium text-red-600 hover:text-red-700 py-2">
@@ -98,6 +84,7 @@
                             </div>
                         </div>
                     </div>
+
                     <div class="relative">
                         <button type="button" id="profile-button"
                                 class="flex items-center space-x-2 p-1 rounded-full hover:bg-gray-100 focus:outline-none">
@@ -118,6 +105,13 @@
                                    class="flex items-center px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100">
                                     <i class="fas fa-user-circle w-5 mr-2"></i>
                                     My Profile
+                                </a>
+
+                                <a th:href="@{/admin}"
+                                   sec:authorize="hasRole('SUPER_ADMIN')"
+                                   class="flex items-center px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100">
+                                    <i class="fas fa-shield-alt w-5 mr-2"></i>
+                                    Admin Panel
                                 </a>
 
                                 <div class="border-t border-gray-100"></div>
@@ -163,12 +157,9 @@
                 if (notificationButton && notificationDropdown) {
                     notificationButton.addEventListener('click', function (event) {
                         event.stopPropagation();
-                        // Toggle this dropdown
                         notificationDropdown.classList.toggle('hidden');
                         // Ensure the other dropdown is hidden
-                        if (profileDropdown) {
-                            profileDropdown.classList.add('hidden');
-                        }
+                        if (profileDropdown) profileDropdown.classList.add('hidden');
                     });
                 }
 
@@ -176,24 +167,17 @@
                 if (profileButton && profileDropdown) {
                     profileButton.addEventListener('click', function (event) {
                         event.stopPropagation();
-                        // Toggle this dropdown
                         profileDropdown.classList.toggle('hidden');
                         // Ensure the other dropdown is hidden
-                        if (notificationDropdown) {
-                            notificationDropdown.classList.add('hidden');
-                        }
+                        if (notificationDropdown) notificationDropdown.classList.add('hidden');
                     });
                 }
 
                 // --- Close *all* dropdowns when clicking outside ---
                 window.addEventListener('click', function (event) {
-
-                    // Close Notification Dropdown
                     if (notificationDropdown && !notificationDropdown.contains(event.target) && notificationButton && !notificationButton.contains(event.target)) {
                         notificationDropdown.classList.add('hidden');
                     }
-
-                    // Close Profile Dropdown
                     if (profileDropdown && !profileDropdown.contains(event.target) && profileButton && !profileButton.contains(event.target)) {
                         profileDropdown.classList.add('hidden');
                     }
