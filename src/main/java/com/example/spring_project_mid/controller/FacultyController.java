@@ -4,7 +4,7 @@ import com.example.spring_project_mid.model.Faculty;
 import com.example.spring_project_mid.model.Post;
 import com.example.spring_project_mid.model.User;
 import com.example.spring_project_mid.repository.PostRepository;
-import com.example.spring_project_mid.repository.UserRepository; // 1. Import UserRepository
+import com.example.spring_project_mid.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,12 +25,6 @@ public class FacultyController {
 
     @GetMapping("/dashboard")
     public String dashboard(@AuthenticationPrincipal User principal, Model model) {
-    private final UserRepository userRepository; // 2. Inject UserRepository
-
-    @GetMapping("/dashboard")
-    public String dashboard(@AuthenticationPrincipal User principal, Model model) {
-        // 3. RELOAD USER: Fetch the user fresh from DB to ensure Faculty is loaded
-        // This prevents LazyInitializationException
         User user = userRepository.findById(principal.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -42,7 +36,6 @@ public class FacultyController {
             return "faculty/dashboard";
         }
 
-        // 4. Fetch posts
         var posts = postRepository.findAllByFacultyOrderByCreatedAtDesc(faculty);
 
         model.addAttribute("faculty", faculty);
@@ -53,20 +46,18 @@ public class FacultyController {
     @PostMapping("/posts/{id}/delete")
     public String deletePost(@PathVariable Long id, @AuthenticationPrincipal User principal) {
         try {
-            // Reload user here too for safety
             User user = userRepository.findById(principal.getId())
                     .orElseThrow(() -> new RuntimeException("User not found"));
 
             Post post = postRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Post not found"));
 
-            // Security check
             if (user.getFaculty() != null && post.getFaculty() != null &&
                     post.getFaculty().getId().equals(user.getFaculty().getId())) {
                 postRepository.delete(post);
             }
         } catch (Exception e) {
-            // Ignore errors and redirect
+            // Ignore errors
         }
         return "redirect:/faculty/dashboard";
     }
