@@ -21,6 +21,10 @@ import java.util.Collections;
 public class FacultyController {
 
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
+
+    @GetMapping("/dashboard")
+    public String dashboard(@AuthenticationPrincipal User principal, Model model) {
     private final UserRepository userRepository; // 2. Inject UserRepository
 
     @GetMapping("/dashboard")

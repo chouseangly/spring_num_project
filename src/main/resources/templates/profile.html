@@ -6,17 +6,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'Battambang', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'Battambang', 'sans-serif'] } } } }</script>
     <style>
         .profile-tab.active-tab {
             border-bottom: 3px solid #ef4444; /* red-500 */
@@ -104,7 +94,7 @@
                                 <span th:if="${activity.faculty != null}" class="font-semibold text-gray-800 mr-2" th:text="${activity.faculty.name}">Faculty Name</span>
                                 <span th:if="${activity.faculty != null}" class="mr-2">&middot;</span>
                                 <span>Posted by </span>
-                                <<a th:href="@{'/users/' + ${activity.user.username}}"
+                                <a th:href="@{'/users/' + ${activity.user.username}}"
                                     class="font-medium text-gray-700 ml-1 hover:underline"
                                     th:text="${activity.user.username}">Username</a>
                                 <span class="mx-2">&middot;</span>
@@ -265,7 +255,7 @@
         </div>
 
         <div id="posts-tab-content" class="tab-content">
-            <div th:if="${posts.isEmpty()}" class="text-center text-gray-500 mt-10">
+            <div th:if="${posts.isEmpty()}" class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
                 <i class="fas fa-calendar-times fa-3x mb-4"></i>
                 <h3 class="text-xl font-semibold">No posts found.</h3>
                 <p>This user hasn't created any posts yet.</p>
@@ -428,7 +418,7 @@
         </div>
 
         <div id="saved-tab-content" class="tab-content">
-            <div th:if="${savedPosts.isEmpty()}" class="text-center text-gray-500 mt-10">
+            <div th:if="${savedPosts.isEmpty()}" class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
                 <i class="fas fa-bookmark fa-3x mb-4"></i>
                 <h3 class="text-xl font-semibold">No saved posts yet.</h3>
                 <p>Posts you save will appear here.</p>
