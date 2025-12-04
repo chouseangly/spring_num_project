@@ -178,6 +178,22 @@ public class AuthViewController {
     }
 
     /**
+     * ADDED: Handles Search Requests
+     */
+    @GetMapping("/search")
+    public String searchPosts(@RequestParam(value = "q", required = false) String query, Model model) {
+        List<Post> posts;
+        if (query != null && !query.trim().isEmpty()) {
+            posts = postRepository.searchPosts(query.trim());
+        } else {
+            posts = postRepository.findAllByOrderByCreatedAtDesc();
+        }
+        model.addAttribute("posts", posts);
+        model.addAttribute("searchQuery", query); // Optional: to show what was searched in the view
+        return "home";
+    }
+
+    /**
      * Shows the form for editing the user's profile.
      */
     @GetMapping("/profile/edit")
