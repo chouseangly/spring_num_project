@@ -45,7 +45,7 @@ public class AuthService {
                 .role(Role.STUDENT)
                 .enabled(false)
                 .verificationOtp(otp)
-                .otpExpiryTime(LocalDateTime.now().plusMinutes(10))
+                .otpExpiryTime(LocalDateTime.now().plusMinutes(1))
                 .build();
         userRepository.save(user);
 
