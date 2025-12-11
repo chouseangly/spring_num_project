@@ -1,7 +1,7 @@
 package com.example.spring_project_mid.model;
 
 import jakarta.persistence.*;
-import lombok.*; // Keep this import
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -59,6 +59,9 @@ public class Post {
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
     private Set<Image> images = new HashSet<>();
+
+    @Column(name = "suspended")
+    private boolean suspended = false;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

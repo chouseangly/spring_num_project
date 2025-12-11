@@ -25,6 +25,7 @@ import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.security.core.Authentication;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -172,7 +173,8 @@ public class AuthViewController {
      */
     @GetMapping("/")
     public String showHomePage(Model model) {
-        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+        // Only fetch active posts
+        List<Post> posts = postRepository.findAllBySuspendedFalseOrderByCreatedAtDesc();
         model.addAttribute("posts", posts);
         return "home";
     }
@@ -184,12 +186,14 @@ public class AuthViewController {
     public String searchPosts(@RequestParam(value = "q", required = false) String query, Model model) {
         List<Post> posts;
         if (query != null && !query.trim().isEmpty()) {
+            // Uses the query that filters suspended = false
             posts = postRepository.searchPosts(query.trim());
         } else {
-            posts = postRepository.findAllByOrderByCreatedAtDesc();
+            // Default to only active posts
+            posts = postRepository.findAllBySuspendedFalseOrderByCreatedAtDesc();
         }
         model.addAttribute("posts", posts);
-        model.addAttribute("searchQuery", query); // Optional: to show what was searched in the view
+        model.addAttribute("searchQuery", query);
         return "home";
     }
 
@@ -241,12 +245,23 @@ public class AuthViewController {
         User targetUser = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = auth.getName();
+        
         boolean isOwner = targetUser.getUsername().equals(currentUsername);
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
 
-        List<Post> posts = postRepository.findAllByUserOrderByCreatedAtDesc(targetUser);
+        List<Post> posts;
+
+        if (isOwner || isAdmin) {
+            posts = postRepository.findAllByUserOrderByCreatedAtDesc(targetUser);
+        } else {
+            posts = postRepository.findAllByUserAndSuspendedFalseOrderByCreatedAtDesc(targetUser);
+        }
+
         List<Comment> comments = commentRepository.findByUserOrderByCreatedAtDesc(targetUser);
-
+        
         List<SavedPost> savedPosts;
         if (isOwner) {
             savedPosts = savedPostRepository.findByUserOrderByCreatedAtDesc(targetUser);

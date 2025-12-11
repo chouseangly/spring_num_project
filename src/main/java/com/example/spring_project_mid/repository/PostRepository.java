@@ -11,22 +11,29 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+
+    // --- FOR OWNER / ADMIN (Shows everything) ---
     @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images", "savedPosts"})
     List<Post> findAllByOrderByCreatedAtDesc();
 
     @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images", "savedPosts"})
     List<Post> findAllByUserOrderByCreatedAtDesc(User user);
 
+    // --- FOR PUBLIC VIEW (Hides suspended posts) ---
+    
+    // 1. For Homepage
+    @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images", "savedPosts"})
+    List<Post> findAllBySuspendedFalseOrderByCreatedAtDesc();
+
+    // 2. For Visiting other profiles
+    @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images", "savedPosts"})
+    List<Post> findAllByUserAndSuspendedFalseOrderByCreatedAtDesc(User user);
+
+    // 3. Updated Search (Only searches non-suspended posts)
+    @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images", "savedPosts"})
+    @Query("SELECT p FROM Post p WHERE (LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%'))) AND p.suspended = false ORDER BY p.createdAt DESC")
+    List<Post> searchPosts(@Param("query") String query);
+    
     @EntityGraph(attributePaths = {"user", "faculty", "images"})
     List<Post> findAllByFacultyOrderByCreatedAtDesc(Faculty faculty);
-
-    // --- Global Search (For Home Page) ---
-    @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images", "savedPosts"})
-    @Query("SELECT p FROM Post p WHERE LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%')) ORDER BY p.createdAt DESC")
-    List<Post> searchPosts(@Param("query") String query);
-
-    // --- Faculty-Specific Search (For Faculty Dashboard) ---
-    @EntityGraph(attributePaths = {"user", "faculty", "images"})
-    @Query("SELECT p FROM Post p WHERE p.faculty = :faculty AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%'))) ORDER BY p.createdAt DESC")
-    List<Post> searchPostsInFaculty(@Param("query") String query, @Param("faculty") Faculty faculty);
 }
