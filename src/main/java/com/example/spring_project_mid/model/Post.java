@@ -60,8 +60,8 @@ public class Post {
     @EqualsAndHashCode.Exclude
     private Set<Image> images = new HashSet<>();
 
-    @Column(name = "is_suspended")
-    private boolean isSuspended = false;
+    @Column(name = "suspended")
+    private boolean suspended = false;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

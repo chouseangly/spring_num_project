@@ -279,9 +279,7 @@
                 <p>This user hasn't created any posts yet.</p>
             </div>
 
-            <div th:each="post : ${posts}"
-                th:if="${!post.isSuspended}"
-                class="bg-white rounded-lg shadow-md mb-4 overflow-hidden">
+            <div th:each="post : ${posts}" class="bg-white rounded-lg shadow-md mb-4 overflow-hidden">
                 <div class="p-6">
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex items-center text-sm text-gray-500 flex-wrap">
