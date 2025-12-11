@@ -9,8 +9,11 @@ import com.example.spring_project_mid.model.SavedPost;
 import com.example.spring_project_mid.repository.SavedPostRepository;
 import com.example.spring_project_mid.repository.VoteRepository;
 import com.example.spring_project_mid.service.PinataService;
+
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -220,5 +223,23 @@ public class PostController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body(Map.of("error", "Upload failed: " + e.getMessage()));
         }
+    }
+
+    /**
+     * Toggles the suspended status of a post.
+     * Only accessible by SUPER_ADMIN.
+     */
+    @PostMapping("/{id}/toggle-suspend")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public String toggleSuspend(@PathVariable Long id, HttpServletRequest request) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        post.setSuspended(!post.isSuspended());
+        postRepository.save(post);
+
+        // Redirect back to the previous page (the profile page)
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/");
     }
 }

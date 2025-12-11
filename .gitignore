@@ -33,4 +33,4 @@ build/
 .vscode/
 
 # Ignore machine-specific config
-src/main/resources/application.properties
+.properties
