@@ -19,7 +19,7 @@
     <div>
         <h2 class="text-xl font-semibold text-gray-800 mb-4">Post Feed</h2>
 
-        <div th:each="post : ${posts}" class="bg-white rounded-lg shadow-md mb-4 overflow-hidden">
+        <div th:each="post : ${posts}" th:if="${!post.isSuspended}" class="bg-white rounded-lg shadow-md mb-4 overflow-hidden">
             <div class="p-6">
                 <div class="flex items-center text-sm text-gray-500 mb-3">
                     <span th:if="${post.faculty != null}" class="font-semibold text-gray-800 mr-2" th:text="${post.faculty.name}">Faculty Name</span>
