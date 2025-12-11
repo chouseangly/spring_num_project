@@ -7,6 +7,7 @@ import com.example.spring_project_mid.repository.FacultyRepository;
 import com.example.spring_project_mid.repository.PostRepository;
 import com.example.spring_project_mid.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import java.util.List;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -35,21 +36,32 @@ public class AdminController {
     }
 
     /**
-     * Lists all users for admin management.
+     * Lists users with Search, Filter, and Sort functionality.
      */
     @GetMapping("/users")
     public String listUsers(Model model,
                             @RequestParam(value = "sortField", defaultValue = "id") String sortField,
-                            @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir) {
+                            @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir,
+                            @RequestParam(value = "keyword", required = false) String keyword,
+                            @RequestParam(value = "role", required = false) Role role,
+                            @RequestParam(value = "status", required = false) Boolean status) {
 
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ?
                 Sort.by(sortField).ascending() : Sort.by(sortField).descending();
 
-        model.addAttribute("users", userRepository.findByRoleNot(Role.SUPER_ADMIN, sort));
+        List<User> users = userRepository.searchUsers(keyword, role, status, sort);
+
+        model.addAttribute("users", users);
 
         model.addAttribute("sortField", sortField);
         model.addAttribute("sortDir", sortDir);
         model.addAttribute("reverseSortDir", sortDir.equals("asc") ? "desc" : "asc");
+
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedRole", role);
+        model.addAttribute("selectedStatus", status);
+        
+        model.addAttribute("allRoles", Role.values());
 
         return "admin/users";
     }
