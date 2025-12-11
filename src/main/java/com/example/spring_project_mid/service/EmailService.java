@@ -26,7 +26,7 @@ public class EmailService {
         message.setFrom(fromEmail);
         message.setTo(to);
         message.setSubject("Your Account Verification OTP");
-        message.setText("Your OTP is: " + otp + "\nIt is valid for 10 minutes.");
+        message.setText("Your OTP is: " + otp + "\nIt is valid for 1 minutes.");
         mailSender.send(message);
     }
 
