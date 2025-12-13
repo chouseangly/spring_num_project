@@ -150,7 +150,7 @@ public class PostController {
      * Toggles the Like status for a post.
      */
     @PostMapping("/{postId}/like")
-    public String toggleLike(@PathVariable Long postId, @AuthenticationPrincipal User user) {
+    public String toggleLike(@PathVariable Long postId, @AuthenticationPrincipal User user, HttpServletRequest request) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
@@ -162,12 +162,28 @@ public class PostController {
             Vote newVote = Vote.builder()
                     .post(post)
                     .user(user)
-                    .voteType(1)
+                    .voteType(1) // 1 for Like
                     .build();
             voteRepository.save(newVote);
+
+            // --- Notification Logic: Post Liked ---
+            // Only notify if the liker is NOT the post owner
+            if (!post.getUser().getId().equals(user.getId())) {
+                String msg = user.getUsername() + " liked your post: " + post.getTitle();
+                String link = "/posts/" + postId;
+                
+                notificationRepository.save(Notification.builder()
+                        .user(post.getUser())
+                        .message(msg)
+                        .isRead(false)
+                        .link(link)
+                        .build());
+            }
         }
 
-        return "redirect:/";
+        // Redirect back to the previous page (to stay on feed or details page)
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/");
     }
 
     /**
