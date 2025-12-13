@@ -435,7 +435,7 @@
                             <span>Like</span>
                         </a>
                         <span class="mx-2 font-bold text-gray-700" th:text="${post.votes.size()}">0</span>
-                        <a href="#" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 ml-2">
+                        <a th:href="@{/posts/{id}(id=${post.id})}" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 ml-2">
                             <i class="fas fa-comment mr-2"></i>
                             <span th:text="${post.comments.size()} + ' Comments'">0 Comments</span>
                         </a>

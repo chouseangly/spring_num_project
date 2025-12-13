@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
@@ -36,4 +37,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     
     @EntityGraph(attributePaths = {"user", "faculty", "images"})
     List<Post> findAllByFacultyOrderByCreatedAtDesc(Faculty faculty);
+
+    @Override
+    @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "comments.user", "images", "savedPosts"})
+    Optional<Post> findById(Long id);
 }
