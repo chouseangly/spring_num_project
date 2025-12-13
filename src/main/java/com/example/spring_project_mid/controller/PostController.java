@@ -26,6 +26,7 @@ public class PostController {
     private final VoteRepository voteRepository;
     private final SavedPostRepository savedPostRepository;
     private final CommentRepository commentRepository;
+    private final NotificationRepository notificationRepository;
 
     /**
      * Shows the form for creating a new post.
@@ -149,7 +150,7 @@ public class PostController {
      * Toggles the Like status for a post.
      */
     @PostMapping("/{postId}/like")
-    public String toggleLike(@PathVariable Long postId, @AuthenticationPrincipal User user) {
+    public String toggleLike(@PathVariable Long postId, @AuthenticationPrincipal User user, HttpServletRequest request) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
@@ -161,12 +162,28 @@ public class PostController {
             Vote newVote = Vote.builder()
                     .post(post)
                     .user(user)
-                    .voteType(1)
+                    .voteType(1) // 1 for Like
                     .build();
             voteRepository.save(newVote);
+
+            // --- Notification Logic: Post Liked ---
+            // Only notify if the liker is NOT the post owner
+            if (!post.getUser().getId().equals(user.getId())) {
+                String msg = user.getUsername() + " liked your post: " + post.getTitle();
+                String link = "/posts/" + postId;
+                
+                notificationRepository.save(Notification.builder()
+                        .user(post.getUser())
+                        .message(msg)
+                        .isRead(false)
+                        .link(link)
+                        .build());
+            }
         }
 
-        return "redirect:/";
+        // Redirect back to the previous page (to stay on feed or details page)
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/");
     }
 
     /**
@@ -253,7 +270,7 @@ public class PostController {
     }
 
     /**
-     * Handle Comment Submission
+     * Handle Comment Submission with Notification Logic
      */
     @PostMapping("/{postId}/comments")
     public String addComment(
@@ -271,13 +288,51 @@ public class PostController {
                 .content(content)
                 .build();
 
+        Comment parent = null;
         if (parentCommentId != null) {
-            Comment parent = commentRepository.findById(parentCommentId)
+            parent = commentRepository.findById(parentCommentId)
                     .orElse(null);
             comment.setParentComment(parent);
         }
 
         commentRepository.save(comment);
+
+        // --- Notification Logic ---
+        // Added logic to handle reply and post owner notifications
+        
+        // 1. Notify Parent Commenter (if this is a reply)
+        if (parent != null) {
+            User parentAuthor = parent.getUser();
+            // Don't notify if user is replying to themselves
+            if (!parentAuthor.getId().equals(user.getId())) {
+                String msg = user.getUsername() + " replied to your comment on: " + post.getTitle();
+                notificationRepository.save(Notification.builder()
+                        .user(parentAuthor)
+                        .message(msg)
+                        .isRead(false)
+                        .build());
+            }
+        }
+
+        // 2. Notify Post Owner
+        // We notify the post owner if:
+        //  - They are not the one commenting.
+        //  - AND they weren't just notified as the parent commenter (to avoid duplicate notifications for the same event).
+        
+        User postOwner = post.getUser();
+        boolean isOwnerCommenting = postOwner.getId().equals(user.getId());
+        boolean alreadyNotifiedAsParent = (parent != null && parent.getUser().getId().equals(postOwner.getId()));
+        String postLink = "/posts/" + postId;
+
+        if (!isOwnerCommenting && !alreadyNotifiedAsParent) {
+            String msg = user.getUsername() + " commented on your post: " + post.getTitle();
+            notificationRepository.save(Notification.builder()
+                    .user(postOwner)
+                    .message(msg)
+                    .isRead(false)
+                    .link(postLink)
+                    .build());
+        }
 
         return "redirect:/posts/" + postId;
     }

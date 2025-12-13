@@ -8,7 +8,6 @@
 <nav class="sticky top-0 z-50 bg-white shadow-md" th:fragment="navbar">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between items-center h-16">
-
             <div class="flex items-center space-x-4">
                 <a th:href="@{/}" class="flex items-center space-x-2">
                     <div class="flex shrink-0 items-center">
@@ -31,7 +30,6 @@
             </div>
 
             <div class="flex items-center space-x-2">
-
                 <div sec:authorize="isAuthenticated()" class="flex items-center space-x-2">
                     <a th:href="@{/posts/create}" title="Create Post"
                        class="w-10 h-10 flex items-center justify-center rounded-full text-gray-600 hover:bg-gray-100">
@@ -55,11 +53,14 @@
                             </div>
                             <ul class="max-h-96 overflow-y-auto">
                                 <li th:each="notif : ${userNotifications}"
-                                    class="p-4 border-b border-gray-100 hover:bg-gray-50"
+                                    class="border-b border-gray-100 hover:bg-gray-50"
                                     th:classappend="${!notif.isRead} ? 'bg-blue-50' : ''">
-                                    <p class="text-sm text-gray-800" th:text="${notif.message}">Notification message...</p>
-                                    <span class="text-xs text-gray-500"
-                                          th:text="${#temporals.format(notif.createdAt, 'dd-MMM-yyyy HH:mm')}">Timestamp</span>
+                                    
+                                    <a th:href="@{/notifications/{id}/read(id=${notif.id})}" class="block p-4">
+                                        <p class="text-sm text-gray-800" th:text="${notif.message}">Notification message...</p>
+                                        <span class="text-xs text-gray-500"
+                                              th:text="${#temporals.format(notif.createdAt, 'dd-MMM-yyyy HH:mm')}">Timestamp</span>
+                                    </a>
                                 </li>
                                 <li th:if="${#lists.isEmpty(userNotifications)}" class="p-6 text-center text-gray-500">
                                     <i class="fas fa-bell-slash fa-2x mb-2"></i>
@@ -140,36 +141,27 @@
     <script th:inline="javascript">
         (function() {
             document.addEventListener('DOMContentLoaded', function () {
-
-                // Notification elements
                 const notificationButton = document.getElementById('notification-button');
                 const notificationDropdown = document.getElementById('notification-dropdown');
-
-                // Profile elements
                 const profileButton = document.getElementById('profile-button');
                 const profileDropdown = document.getElementById('profile-dropdown');
 
-                // --- Toggle notification dropdown ---
                 if (notificationButton && notificationDropdown) {
                     notificationButton.addEventListener('click', function (event) {
                         event.stopPropagation();
                         notificationDropdown.classList.toggle('hidden');
-                        // Ensure the other dropdown is hidden
                         if (profileDropdown) profileDropdown.classList.add('hidden');
                     });
                 }
 
-                // --- Toggle profile dropdown ---
                 if (profileButton && profileDropdown) {
                     profileButton.addEventListener('click', function (event) {
                         event.stopPropagation();
                         profileDropdown.classList.toggle('hidden');
-                        // Ensure the other dropdown is hidden
                         if (notificationDropdown) notificationDropdown.classList.add('hidden');
                     });
                 }
 
-                // --- Close *all* dropdowns when clicking outside ---
                 window.addEventListener('click', function (event) {
                     if (notificationDropdown && !notificationDropdown.contains(event.target) && notificationButton && !notificationButton.contains(event.target)) {
                         notificationDropdown.classList.add('hidden');
