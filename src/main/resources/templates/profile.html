@@ -257,7 +257,9 @@
                     <div class="flex items-center text-sm text-gray-500 mb-3">
                         <span class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">COMMENT</span>
                         <span>Commented on </span>
-                        <span class="font-medium text-gray-800 ml-1 mr-2" th:text="${activity.post.title}">Post Title</span>
+                        <a th:href="@{/posts/{id}(id=${activity.post.id})}" 
+                           class="font-medium text-gray-800 ml-1 mr-2 hover:underline hover:text-red-600" 
+                           th:text="${activity.post.title}">Post Title</a>
                         <span>&middot;</span>
                         <span class="ml-2 relative-time"
                               th:data-timestamp="${activity.createdAt}"
@@ -445,10 +447,43 @@
         </div>
 
         <div id="comments-tab-content" class="tab-content">
-            <div class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
-                <i class="fas fa-comments fa-2x mb-2"></i>
-                <h3 class="text-lg font-semibold">Comments</h3>
-                <p>(User's comments will be displayed here in a future update)</p>
+            <div th:if="${#lists.isEmpty(comments)}" class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
+                <i class="fas fa-comment fa-2x mb-2"></i>
+                <h3 class="text-lg font-semibold">No comments yet</h3>
+                <p>This user hasn't posted any comments.</p>
+            </div>
+
+            <div th:if="${not #lists.isEmpty(comments)}">
+                <div th:each="comment : ${comments}" class="bg-white p-6 rounded-lg shadow-md mb-4">
+                    
+                    <div th:if="${comment.post != null}">
+                        <div class="flex items-center text-sm text-gray-500 mb-3">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">COMMENT</span>
+                            
+                            <span>Commented on </span>
+                            
+                            <a th:href="@{/posts/{id}(id=${comment.post.id})}" 
+                            class="font-medium text-gray-800 ml-1 mr-2 hover:underline hover:text-red-600" 
+                            th:text="${comment.post.title}">Post Title</a>
+                            
+                            <span>&middot;</span>
+                            
+                            <span class="ml-2 relative-time"
+                                th:data-timestamp="${comment.createdAt}"
+                                th:data-full-date="${#temporals.format(comment.createdAt, 'dd-MMM-yyyy HH:mm')}">
+                            </span>
+                        </div>
+
+                        <div class="pl-4 border-l-4 border-gray-200 bg-gray-50 p-3 rounded-r-lg">
+                            <p class="text-gray-800 italic" th:text="${comment.content}">Comment content...</p>
+                        </div>
+                    </div>
+
+                    <div th:if="${comment.post == null}" class="text-red-500 text-xs p-2">
+                        <i class="fas fa-exclamation-triangle"></i> Data Error: This comment is not linked to a post.
+                    </div>
+
+                </div>
             </div>
         </div>
 

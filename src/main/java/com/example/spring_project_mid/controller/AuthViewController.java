@@ -162,6 +162,7 @@ public class AuthViewController {
 
         model.addAttribute("user", user);
         model.addAttribute("posts", posts);
+        model.addAttribute("comments", comments);
         model.addAttribute("activities", activities);
         model.addAttribute("savedPosts", savedPosts);
 
@@ -263,6 +264,7 @@ public class AuthViewController {
         List<Comment> comments = commentRepository.findByUserOrderByCreatedAtDesc(targetUser);
         
         List<SavedPost> savedPosts;
+        
         if (isOwner) {
             savedPosts = savedPostRepository.findByUserOrderByCreatedAtDesc(targetUser);
         } else {
