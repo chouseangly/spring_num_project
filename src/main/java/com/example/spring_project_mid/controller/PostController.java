@@ -1,15 +1,8 @@
 package com.example.spring_project_mid.controller;
 
-import com.example.spring_project_mid.model.Image;
-import com.example.spring_project_mid.model.Post;
-import com.example.spring_project_mid.model.User;
-import com.example.spring_project_mid.model.Vote;
-import com.example.spring_project_mid.repository.PostRepository;
-import com.example.spring_project_mid.model.SavedPost;
-import com.example.spring_project_mid.repository.SavedPostRepository;
-import com.example.spring_project_mid.repository.VoteRepository;
+import com.example.spring_project_mid.model.*;
+import com.example.spring_project_mid.repository.*;
 import com.example.spring_project_mid.service.PinataService;
-
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -36,6 +25,7 @@ public class PostController {
     private final PinataService pinataService;
     private final VoteRepository voteRepository;
     private final SavedPostRepository savedPostRepository;
+    private final CommentRepository commentRepository;
 
     /**
      * Shows the form for creating a new post.
@@ -241,5 +231,54 @@ public class PostController {
         // Redirect back to the previous page (the profile page)
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/");
+    }
+
+    /**
+     * Display Post Details with Comments
+     */
+    @GetMapping("/{id}")
+    public String viewPostDetails(@PathVariable Long id, Model model, @AuthenticationPrincipal User user) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        // Filter for root comments (no parent) and sort them
+        List<Comment> rootComments = post.getComments().stream()
+                .filter(c -> c.getParentComment() == null)
+                .sorted(Comparator.comparing(Comment::getCreatedAt).reversed())
+                .collect(Collectors.toList());
+
+        model.addAttribute("post", post);
+        model.addAttribute("comments", rootComments);
+        return "post-details";
+    }
+
+    /**
+     * Handle Comment Submission
+     */
+    @PostMapping("/{postId}/comments")
+    public String addComment(
+            @PathVariable Long postId,
+            @RequestParam("content") String content,
+            @RequestParam(value = "parentCommentId", required = false) Long parentCommentId,
+            @AuthenticationPrincipal User user
+    ) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        Comment comment = Comment.builder()
+                .post(post)
+                .user(user)
+                .content(content)
+                .build();
+
+        if (parentCommentId != null) {
+            Comment parent = commentRepository.findById(parentCommentId)
+                    .orElse(null);
+            comment.setParentComment(parent);
+        }
+
+        commentRepository.save(comment);
+
+        return "redirect:/posts/" + postId;
     }
 }
