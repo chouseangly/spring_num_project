@@ -13,7 +13,16 @@
 
 <div class="p-4 md:p-8">
     <div class="max-w-4xl mx-auto bg-white px-4 sm:px-8 py-10 rounded-xl shadow">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">My Notifications</h2>
+        
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+            <h2 class="text-2xl font-bold text-gray-800">My Notifications</h2>
+            
+            <form th:if="${!notifications.isEmpty()}" th:action="@{/notifications/mark-all-read}" method="post">
+                <button type="submit" class="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-2">
+                    <i class="fas fa-check-double"></i> Mark all as read
+                </button>
+            </form>
+        </div>
 
         <div th:if="${notifications.isEmpty()}" class="text-center text-gray-500">
             <i class="fas fa-bell-slash fa-2x mb-3"></i>
@@ -22,14 +31,19 @@
 
         <ul th:unless="${notifications.isEmpty()}" class="space-y-4">
             <li th:each="notif : ${notifications}"
-                class="p-4 rounded-lg border"
+                class="rounded-lg border transition-colors duration-200"
                 th:classappend="${notif.isRead} ? 'bg-gray-50' : 'bg-blue-50 border-blue-300'">
 
-                <p class="text-gray-800 font-medium" th:text="${notif.message}">Notification message...</p>
-                <span class="text-sm text-gray-500"
-                      th:text="${#temporals.format(notif.createdAt, 'dd-MMM-yyyy HH:mm')}">
-                    Timestamp
-                </span>
+                <a th:href="@{/notifications/{id}/read(id=${notif.id})}"
+                   class="block p-4 w-full h-full hover:opacity-80">
+                    <div class="flex justify-between items-center">
+                        <p class="text-gray-800 font-medium" th:text="${notif.message}">Notification message...</p>
+                        <span class="text-sm text-gray-500 whitespace-nowrap ml-4"
+                              th:text="${#temporals.format(notif.createdAt, 'dd-MMM-yyyy HH:mm')}">
+                            Timestamp
+                        </span>
+                    </div>
+                </a>
             </li>
         </ul>
 
