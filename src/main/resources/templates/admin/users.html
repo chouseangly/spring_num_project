@@ -135,9 +135,9 @@
                         <td class="px-6 py-4 text-right space-x-0.5">
                             <form th:action="@{/admin/users/{id}/toggle-status(id=${u.id})}" method="post" class="inline-block">
                                 <button type="submit"
-                                        th:class="${u.enabled} ? 'text-red-600 hover:bg-red-50 px-2 py-1 rounded hover:border-red-100 border border-transparent transition-all' : 'text-green-600 hover:bg-green-100 px-2 py-1 rounded hover:border-green-200 border border-transparent transition-all'"
+                                        th:class="${u.enabled} ? 'text-green-600 hover:bg-green-100 px-2 py-1 rounded hover:border-green-200 border border-transparent transition-all' :'text-red-600 hover:bg-red-50 px-2 py-1 rounded hover:border-red-100 border border-transparent transition-all'"
                                         th:title="${u.enabled} ? 'Suspend User' : 'Activate User'">
-                                    <i th:class="${u.enabled} ? 'fas fa-lock' : 'fas fa-unlock'"></i>
+                                    <i th:class="${u.enabled} ? 'fas fa-unlock' : 'fas fa-lock'"></i>
                                 </button>
                             </form>
 

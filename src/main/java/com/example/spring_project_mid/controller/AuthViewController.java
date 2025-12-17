@@ -173,28 +173,29 @@ public class AuthViewController {
      */
     @GetMapping("/")
     public String showHomePage(Model model) {
-        // Only fetch active posts
+        // Only fetch active posts (handling NULL suspended values)
         List<Post> posts = postRepository.findAllBySuspendedFalseOrderByCreatedAtDesc();
         model.addAttribute("posts", posts);
         return "home";
     }
 
     /**
-     * ADDED: Handles Search Requests
+     * Handles Search Requests
+     * Searches by Name (Title) or Content
      */
     @GetMapping("/search")
     public String searchPosts(@RequestParam(value = "q", required = false) String query, Model model) {
         List<Post> posts;
         if (query != null && !query.trim().isEmpty()) {
-            // Uses the query that filters suspended = false
+            // Searches title/content and ignores suspended posts
             posts = postRepository.searchPosts(query.trim());
         } else {
-            // Default to only active posts
+            // Default to all active posts
             posts = postRepository.findAllBySuspendedFalseOrderByCreatedAtDesc();
         }
         model.addAttribute("posts", posts);
         model.addAttribute("searchQuery", query);
-        return "home";
+        return "home"; // Reuses the home page template to display results
     }
 
     /**
@@ -247,7 +248,7 @@ public class AuthViewController {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = auth.getName();
-        
+
         boolean isOwner = targetUser.getUsername().equals(currentUsername);
         boolean isAdmin = auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
@@ -261,7 +262,7 @@ public class AuthViewController {
         }
 
         List<Comment> comments = commentRepository.findByUserOrderByCreatedAtDesc(targetUser);
-        
+
         List<SavedPost> savedPosts;
         if (isOwner) {
             savedPosts = savedPostRepository.findByUserOrderByCreatedAtDesc(targetUser);
