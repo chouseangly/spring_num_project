@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${post.title} + ' - NUM Community'">Post Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'Battambang', 'sans-serif'] } } } }</script>
+</head>
+<body class="bg-gray-100 min-h-screen relative">
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+<div class="max-w-4xl mx-auto p-4 md:p-8">
+
+    <a href="/" class="inline-flex items-center text-gray-500 hover:text-gray-800 mb-4 font-medium transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i> Back to Feed
+    </a>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+        <div class="p-6">
+            <div class="flex items-center text-sm text-gray-500 mb-4">
+                <span th:if="${post.faculty != null}" class="font-semibold text-gray-800 mr-2" th:text="${post.faculty.name}">Faculty</span>
+                <span th:if="${post.faculty != null}" class="mr-2">&middot;</span>
+                <span>Posted by </span>
+                <a th:href="@{'/users/' + ${post.user.username}}" class="font-medium text-gray-900 ml-1 hover:underline" th:text="${post.user.username}">User</a>
+                <span class="mx-2">&middot;</span>
+                <span class="relative-time" th:data-timestamp="${post.createdAt}" th:text="${#temporals.format(post.createdAt, 'dd-MMM-yyyy HH:mm')}">Date</span>
+            </div>
+
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-4">
+                <a th:if="${post.linkUrl != null}" th:href="${post.linkUrl}" target="_blank" class="hover:text-red-600 underline decoration-red-200 decoration-2 underline-offset-4" th:text="${post.title}">Title</a>
+                <span th:if="${post.linkUrl == null}" th:text="${post.title}">Title</span>
+            </h1>
+
+            <div th:if="${post.images != null and not post.images.isEmpty()}" class="my-6 rounded-lg overflow-hidden"
+                 th:with="imageCount=${#lists.size(post.images)}">
+
+                <div class="grid grid-cols-6 gap-1">
+                    <th:block th:each="image, iterStat : ${post.images}" th:if="${iterStat.index < 7}">
+                        <div class="relative"
+                             th:classappend="${
+                                (imageCount == 1) ? 'col-span-6' :
+                                (imageCount == 2) ? 'col-span-3' :
+                                (iterStat.index == 0) ? 'col-span-6' :
+                                (imageCount == 3) ? 'col-span-3' :
+                                (imageCount == 4) ? 'col-span-2' :
+                                (imageCount == 5) ? 'col-span-3' :
+                                (imageCount == 6) ? (iterStat.index < 3 ? 'col-span-3' : 'col-span-2') :
+                                'col-span-2'
+                            } + ' ' + (
+                                ${imageCount == 1} ? 'max-h-[600px]' :
+                                (${imageCount >= 3 and iterStat.index == 0} ? 'h-96' :
+                                (${imageCount >= 3 and iterStat.index > 0} ? 'h-54' : 'aspect-square'))
+                            )">
+
+                            <div th:if="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
+                                <video class="w-full h-full"
+                                       th:classappend="${imageCount == 1 ? 'object-contain bg-black' : 'object-cover'}" controls>
+                                    <source th:src="${image.url}" type="video/mp4">
+                                </video>
+                            </div>
+
+                            <div th:unless="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
+                                <a th:href="${image.url}" data-fancybox="gallery" class="relative block w-full h-full">
+                                    <img th:src="${image.url}" class="w-full h-full"
+                                         th:classappend="${imageCount == 1 ? 'object-contain bg-gray-100' : 'object-cover'}">
+
+                                    <div th:if="${imageCount > 7 and iterStat.index == 6}"
+                                         class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10 cursor-pointer">
+                                        <span class="text-white text-3xl font-bold" th:text="'+' + (${imageCount} - 7)">+1</span>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
+
+                <div class="hidden">
+                    <th:block th:each="image, iterStat : ${post.images}" th:if="${imageCount > 7 and iterStat.index >= 7}">
+                        <a th:href="${image.url}" data-fancybox="gallery"></a>
+                    </th:block>
+                </div>
+            </div>
+
+            <div class="prose max-w-none text-gray-800 text-lg mb-6 whitespace-pre-wrap post-content"
+                 th:if="${post.content}" th:data-content="${post.content}"></div>
+
+            <div class="flex items-center text-gray-500 font-medium text-sm pt-4 border-t border-gray-100">
+                <div sec:authorize="isAuthenticated()">
+                    <th:block th:with="isLiked=${#sets.contains(post.votes.![user.id], #authentication.principal.id)}">
+                        <form th:action="@{/posts/{postId}/like(postId=${post.id})}" method="post" class="inline-block">
+                            <button type="submit" th:classappend="${isLiked} ? 'text-red-600 bg-red-100' : 'hover:bg-gray-100'"
+                                    class="flex items-center py-2 px-4 rounded-full transition-colors">
+                                <i th:classappend="${isLiked} ? 'fas' : 'far'" class="fa-heart mr-2 text-lg"></i>
+                                <span th:text="${isLiked} ? 'Liked' : 'Like'">Like</span>
+                            </button>
+                        </form>
+                    </th:block>
+                </div>
+                <a th:href="@{/login}" sec:authorize="isAnonymous()" class="flex items-center py-2 px-4 rounded-full hover:bg-gray-100">
+                    <i class="far fa-heart mr-2 text-lg"></i> <span>Like</span>
+                </a>
+
+                <span class="mx-3 font-bold text-gray-700" th:text="${post.votes.size()}">0</span>
+
+                <div class="flex items-center py-2 px-4 rounded-full bg-gray-100 ml-2 text-gray-800">
+                    <i class="fas fa-comment-alt mr-2 text-lg"></i>
+                    <span th:text="${post.comments.size()} + ' Comments'">0 Comments</span>
+                </div>
+
+                <div sec:authorize="isAuthenticated()" class="ml-auto">
+                    <th:block th:with="isSaved=${#sets.contains(post.savedPosts.![user.id], #authentication.principal.id)}">
+                        <form th:action="@{/posts/{postId}/save(postId=${post.id})}" method="post" class="inline-block">
+                            <button type="submit" th:classappend="${isSaved} ? 'text-blue-600 bg-blue-50' : 'hover:bg-gray-100'"
+                                    class="flex items-center py-2 px-4 rounded-full transition-colors">
+                                <i th:classappend="${isSaved} ? 'fas' : 'far'" class="fa-bookmark mr-2 text-lg"></i>
+                                <span th:text="${isSaved} ? 'Saved' : 'Save'">Save</span>
+                            </button>
+                        </form>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-xl font-bold text-gray-800 mb-6">Discussion</h3>
+
+        <div sec:authorize="isAuthenticated()" class="mb-8 flex gap-4">
+            <img th:src="${#authentication.principal.avatarUrl ?: 'https://ui-avatars.com/api/?name=' + #authentication.principal.username}"
+                 class="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0">
+            <form th:action="@{/posts/{postId}/comments(postId=${post.id})}" method="post" class="w-full">
+                <textarea name="content" rows="3" placeholder="What are your thoughts?" required
+                          class="w-full p-4 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-500 resize-none bg-gray-50 focus:bg-white transition-colors"></textarea>
+                <div class="flex justify-end mt-2">
+                    <button type="submit" class="bg-red-600 text-white px-6 py-2 rounded-full font-semibold hover:bg-red-700 transition-colors">
+                        Comment
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div sec:authorize="isAnonymous()" class="mb-8 p-4 bg-gray-50 rounded-lg text-center border border-gray-200">
+            <p class="text-gray-600 mb-2">Log in to join the discussion.</p>
+            <a th:href="@{/login}" class="inline-block px-6 py-2 bg-red-600 text-white rounded-full font-medium hover:bg-red-700">Log In</a>
+        </div>
+
+        <div class="space-y-6">
+            <div th:fragment="commentList(comments)" class="space-y-4">
+                <div th:each="comment : ${comments}" class="group">
+                    <div class="flex gap-3">
+                        <a th:href="@{'/users/' + ${comment.user.username}}">
+                            <img th:src="${comment.user.avatarUrl ?: 'https://ui-avatars.com/api/?name=' + comment.user.username}"
+                                 class="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 hover:opacity-80 transition-opacity">
+                        </a>
+                        <div class="flex-1">
+                            <div th:id="'comment-display-' + ${comment.id}"
+                                 class="bg-gray-50 p-3 rounded-2xl rounded-tl-none inline-block min-w-[200px]">
+                                <div class="flex items-center justify-between mb-1 gap-4">
+                                    <a th:href="@{'/users/' + ${comment.user.username}}" class="font-bold text-sm text-gray-900 hover:underline" th:text="${comment.user.username}">User</a>
+                                    <span class="text-xs text-gray-500 relative-time" th:data-timestamp="${comment.createdAt}" th:text="${#temporals.format(comment.createdAt, 'dd-MMM-yyyy')}">Date</span>
+                                </div>
+                                <p class="text-gray-800 text-sm whitespace-pre-wrap" th:text="${comment.content}">Content</p>
+                            </div>
+
+                            <div th:id="'comment-edit-' + ${comment.id}" class="hidden w-full max-w-xl">
+                                <form th:action="@{/comments/{id}/edit(id=${comment.id})}" method="post" class="mt-1">
+                                    <textarea name="content" rows="2" required
+                                              class="w-full p-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-200 text-sm transition-shadow shadow-sm"
+                                              th:text="${comment.content}"></textarea>
+                                    <div class="flex gap-2 mt-2">
+                                        <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-full hover:bg-blue-700 transition-colors">
+                                            Save
+                                        </button>
+                                        <button type="button"
+                                                th:onclick="'toggleEdit(' + ${comment.id} + ')'"
+                                                class="px-4 py-1.5 bg-gray-200 text-gray-700 text-xs font-bold rounded-full hover:bg-gray-300 transition-colors">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="flex items-center gap-3 mt-1 ml-2">
+                                <button type="button" sec:authorize="isAuthenticated()"
+                                        class="text-xs font-bold text-gray-500 hover:text-gray-800 cursor-pointer"
+                                        th:onclick="'toggleReplyForm(\'reply-form-' + ${comment.id} + '\')'">
+                                    Reply
+                                </button>
+
+                                <th:block sec:authorize="isAuthenticated()" th:if="${comment.user.id == #authentication.principal.id}">
+                                    <span class="text-gray-300">&bull;</span>
+
+                                    <button type="button"
+                                            th:onclick="'toggleEdit(' + ${comment.id} + ')'"
+                                            class="text-xs font-bold text-blue-600 hover:text-blue-800 cursor-pointer">
+                                        Edit
+                                    </button>
+
+                                    <button type="button"
+                                            th:onclick="'openDeleteModal(' + ${comment.id} + ')'"
+                                            class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">
+                                        Delete
+                                    </button>
+                                </th:block>
+                            </div>
+
+                            <div sec:authorize="isAuthenticated()" th:id="'reply-form-' + ${comment.id}" class="hidden mt-3 ml-2">
+                                <form th:action="@{/posts/{postId}/comments(postId=${post.id})}" method="post" class="flex gap-2">
+                                    <input type="hidden" name="parentCommentId" th:value="${comment.id}">
+                                    <div class="flex-grow relative">
+                                        <input type="text" name="content" placeholder="Write a reply..." required
+                                               class="w-full px-4 py-2 bg-gray-100 border-transparent focus:border-red-500 focus:bg-white focus:ring-0 rounded-full text-sm transition-colors">
+                                    </div>
+                                    <button type="submit" class="text-red-600 hover:text-red-700 px-3 py-1 rounded-full text-sm font-bold">
+                                        <i class="fas fa-paper-plane"></i>
+                                    </button>
+                                </form>
+                            </div>
+
+                            <div th:if="${not #lists.isEmpty(comment.replies)}" class="mt-3 pl-3 border-l-2 border-gray-200">
+                                <div th:replace="~{this :: commentList(comments=${comment.replies})}"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${#lists.isEmpty(comments)}" class="text-center py-10 text-gray-500">
+                <i class="far fa-comments fa-3x mb-3 text-gray-300"></i>
+                <p>No comments yet. Be the first to share your thoughts!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="relative z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                            <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Delete Comment</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">Are you sure you want to delete this comment? This action cannot be undone.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <form id="deleteForm" method="post" action="">
+                        <button type="submit" class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto">Delete</button>
+                    </form>
+                    <button type="button" onclick="closeDeleteModal()" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.umd.js"></script>
+<script>
+    Fancybox.bind("[data-fancybox]", {});
+
+    // --- DELETE MODAL LOGIC ---
+    function openDeleteModal(commentId) {
+        const modal = document.getElementById('deleteModal');
+        const form = document.getElementById('deleteForm');
+        // Set the form action dynamically to the specific comment ID
+        form.action = '/comments/' + commentId + '/delete';
+        modal.classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.add('hidden');
+    }
+
+    // --- REPLY FORM TOGGLE ---
+    function toggleReplyForm(id) {
+        const form = document.getElementById(id);
+        form.classList.toggle('hidden');
+        if (!form.classList.contains('hidden')) {
+            form.querySelector('input').focus();
+        }
+    }
+
+    // --- EDIT COMMENT TOGGLE ---
+    function toggleEdit(commentId) {
+        const displayDiv = document.getElementById('comment-display-' + commentId);
+        const editDiv = document.getElementById('comment-edit-' + commentId);
+
+        if (displayDiv && editDiv) {
+            if (editDiv.classList.contains('hidden')) {
+                displayDiv.classList.add('hidden');
+                editDiv.classList.remove('hidden');
+                editDiv.querySelector('textarea').focus();
+            } else {
+                displayDiv.classList.remove('hidden');
+                editDiv.classList.add('hidden');
+            }
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        function linkify(plainText) {
+            if (!plainText) return "";
+            const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+            return plainText.replace(urlRegex, url => `<a href="${url}" target="_blank" class="text-blue-600 underline">${url}</a>`);
+        }
+        document.querySelectorAll('.post-content').forEach(p => {
+            if (p.dataset.content) p.innerHTML = linkify(p.dataset.content);
+        });
+
+        document.querySelectorAll('.relative-time').forEach(el => {
+            const date = new Date(el.dataset.timestamp);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+            if(diff < 60) el.textContent = 'just now';
+            else if(diff < 3600) el.textContent = Math.floor(diff/60) + 'm ago';
+            else if(diff < 86400) el.textContent = Math.floor(diff/3600) + 'h ago';
+        });
+    });
+</script>
+</body>
+</html>

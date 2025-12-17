@@ -1,15 +1,8 @@
 package com.example.spring_project_mid.controller;
 
-import com.example.spring_project_mid.model.Image;
-import com.example.spring_project_mid.model.Post;
-import com.example.spring_project_mid.model.User;
-import com.example.spring_project_mid.model.Vote;
-import com.example.spring_project_mid.repository.PostRepository;
-import com.example.spring_project_mid.model.SavedPost;
-import com.example.spring_project_mid.repository.SavedPostRepository;
-import com.example.spring_project_mid.repository.VoteRepository;
+import com.example.spring_project_mid.model.*;
+import com.example.spring_project_mid.repository.*;
 import com.example.spring_project_mid.service.PinataService;
-
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Controller
@@ -36,6 +25,8 @@ public class PostController {
     private final PinataService pinataService;
     private final VoteRepository voteRepository;
     private final SavedPostRepository savedPostRepository;
+    private final CommentRepository commentRepository;
+    private final NotificationRepository notificationRepository;
 
     /**
      * Shows the form for creating a new post.
@@ -159,7 +150,7 @@ public class PostController {
      * Toggles the Like status for a post.
      */
     @PostMapping("/{postId}/like")
-    public String toggleLike(@PathVariable Long postId, @AuthenticationPrincipal User user) {
+    public String toggleLike(@PathVariable Long postId, @AuthenticationPrincipal User user, HttpServletRequest request) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
@@ -171,12 +162,28 @@ public class PostController {
             Vote newVote = Vote.builder()
                     .post(post)
                     .user(user)
-                    .voteType(1)
+                    .voteType(1) // 1 for Like
                     .build();
             voteRepository.save(newVote);
+
+            // --- Notification Logic: Post Liked ---
+            // Only notify if the liker is NOT the post owner
+            if (!post.getUser().getId().equals(user.getId())) {
+                String msg = user.getUsername() + " liked your post: " + post.getTitle();
+                String link = "/posts/" + postId;
+                
+                notificationRepository.save(Notification.builder()
+                        .user(post.getUser())
+                        .message(msg)
+                        .isRead(false)
+                        .link(link)
+                        .build());
+            }
         }
 
-        return "redirect:/";
+        // Redirect back to the previous page (to stay on feed or details page)
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : "/");
     }
 
     /**
@@ -241,5 +248,92 @@ public class PostController {
         // Redirect back to the previous page (the profile page)
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/");
+    }
+
+    /**
+     * Display Post Details with Comments
+     */
+    @GetMapping("/{id}")
+    public String viewPostDetails(@PathVariable Long id, Model model, @AuthenticationPrincipal User user) {
+        Post post = postRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        // Filter for root comments (no parent) and sort them
+        List<Comment> rootComments = post.getComments().stream()
+                .filter(c -> c.getParentComment() == null)
+                .sorted(Comparator.comparing(Comment::getCreatedAt).reversed())
+                .collect(Collectors.toList());
+
+        model.addAttribute("post", post);
+        model.addAttribute("comments", rootComments);
+        return "post-details";
+    }
+
+    /**
+     * Handle Comment Submission with Notification Logic
+     */
+    @PostMapping("/{postId}/comments")
+    public String addComment(
+            @PathVariable Long postId,
+            @RequestParam("content") String content,
+            @RequestParam(value = "parentCommentId", required = false) Long parentCommentId,
+            @AuthenticationPrincipal User user
+    ) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new RuntimeException("Post not found"));
+
+        Comment comment = Comment.builder()
+                .post(post)
+                .user(user)
+                .content(content)
+                .build();
+
+        Comment parent = null;
+        if (parentCommentId != null) {
+            parent = commentRepository.findById(parentCommentId)
+                    .orElse(null);
+            comment.setParentComment(parent);
+        }
+
+        commentRepository.save(comment);
+
+        // --- Notification Logic ---
+        // Added logic to handle reply and post owner notifications
+        
+        // 1. Notify Parent Commenter (if this is a reply)
+        if (parent != null) {
+            User parentAuthor = parent.getUser();
+            // Don't notify if user is replying to themselves
+            if (!parentAuthor.getId().equals(user.getId())) {
+                String msg = user.getUsername() + " replied to your comment on: " + post.getTitle();
+                notificationRepository.save(Notification.builder()
+                        .user(parentAuthor)
+                        .message(msg)
+                        .isRead(false)
+                        .build());
+            }
+        }
+
+        // 2. Notify Post Owner
+        // We notify the post owner if:
+        //  - They are not the one commenting.
+        //  - AND they weren't just notified as the parent commenter (to avoid duplicate notifications for the same event).
+        
+        User postOwner = post.getUser();
+        boolean isOwnerCommenting = postOwner.getId().equals(user.getId());
+        boolean alreadyNotifiedAsParent = (parent != null && parent.getUser().getId().equals(postOwner.getId()));
+        String postLink = "/posts/" + postId;
+
+        if (!isOwnerCommenting && !alreadyNotifiedAsParent) {
+            String msg = user.getUsername() + " commented on your post: " + post.getTitle();
+            notificationRepository.save(Notification.builder()
+                    .user(postOwner)
+                    .message(msg)
+                    .isRead(false)
+                    .link(postLink)
+                    .build());
+        }
+
+        return "redirect:/posts/" + postId;
     }
 }

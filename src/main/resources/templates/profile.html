@@ -58,6 +58,7 @@
             <p class="text-gray-700" th:text="${user.bio}">User bio goes here.</p>
         </div>
     </div>
+
     <div class="mb-4 border-b border-gray-300">
         <nav class="flex space-x-6" id="profile-tabs">
             <a href="#overview" data-tab="overview" class="profile-tab pb-3 font-semibold text-gray-500 hover:text-red-600">Overview</a>
@@ -95,16 +96,16 @@
                                 <span th:if="${activity.faculty != null}" class="mr-2">&middot;</span>
                                 <span>Posted by </span>
                                 <a th:href="@{'/users/' + ${activity.user.username}}"
-                                    class="font-medium text-gray-700 ml-1 hover:underline"
-                                    th:text="${activity.user.username}">Username</a>
+                                   class="font-medium text-gray-700 ml-1 hover:underline"
+                                   th:text="${activity.user.username}">Username</a>
                                 <span class="mx-2">&middot;</span>
                                 <span class="relative-time cursor-pointer"
                                       th:data-timestamp="${activity.createdAt}"
                                       th:data-full-date="${#temporals.format(activity.createdAt, 'dd-MMM-yyyy HH:mm')}"
                                       th:title="'Click to toggle format'">
                                 </span>
-                                <span th:if="${activity.isSuspended}" 
-                                    class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded ml-2">
+                                <span th:if="${activity.isSuspended}"
+                                      class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded ml-2">
                                     SUSPENDED
                                 </span>
                             </div>
@@ -112,12 +113,12 @@
                             <div class="flex space-x-1 -mt-1 -mr-1 shrink-0">
                                 <th:block th:if="${#authentication.principal.username == user.username}">
                                     <a th:href="@{/posts/{id}/edit(id=${activity.id})}" title="Edit Post"
-                                    class="flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-800">
+                                       class="flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-800">
                                         <i class="fas fa-pencil-alt"></i>
                                     </a>
-                                    
+
                                     <form th:action="@{/posts/{id}/delete(id=${activity.id})}" method="post"
-                                        onsubmit="return confirm('Are you sure you want to delete this post?');">
+                                          onsubmit="return confirm('Are you sure you want to delete this post?');">
                                         <button type="submit" title="Delete Post"
                                                 class="flex items-center justify-center w-9 h-9 rounded-full text-red-500 hover:bg-red-100 hover:text-red-700">
                                             <i class="fas fa-trash-alt"></i>
@@ -126,8 +127,8 @@
                                 </th:block>
 
                                 <form th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}"
-                                    th:action="@{/posts/{id}/toggle-suspend(id=${activity.id})}" method="post">
-                                    <button type="submit" 
+                                      th:action="@{/posts/{id}/toggle-suspend(id=${activity.id})}" method="post">
+                                    <button type="submit"
                                             th:title="${activity.isSuspended} ? 'Unsuspend Post' : 'Suspend Post'"
                                             th:classappend="${activity.isSuspended} ? 'text-green-600 hover:bg-green-100' : 'text-orange-500 hover:bg-orange-100'"
                                             class="flex items-center justify-center w-9 h-9 rounded-full transition-colors">
@@ -135,7 +136,6 @@
                                     </button>
                                 </form>
                             </div>
-                            
                         </div>
 
                         <div class="post-title-wrapper">
@@ -257,7 +257,9 @@
                     <div class="flex items-center text-sm text-gray-500 mb-3">
                         <span class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">COMMENT</span>
                         <span>Commented on </span>
-                        <span class="font-medium text-gray-800 ml-1 mr-2" th:text="${activity.post.title}">Post Title</span>
+                        <a th:href="@{/posts/{id}(id=${activity.post.id})}"
+                           class="font-medium text-gray-800 ml-1 mr-2 hover:underline hover:text-red-600"
+                           th:text="${activity.post.title}">Post Title</a>
                         <span>&middot;</span>
                         <span class="ml-2 relative-time"
                               th:data-timestamp="${activity.createdAt}"
@@ -295,8 +297,8 @@
                                   th:data-full-date="${#temporals.format(post.createdAt, 'dd-MMM-yyyy HH:mm')}"
                                   th:title="'Click to toggle format'">
                             </span>
-                            <span th:if="${post.isSuspended}" 
-                                class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded ml-2">
+                            <span th:if="${post.isSuspended}"
+                                  class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded ml-2">
                                 SUSPENDED
                             </span>
                         </div>
@@ -305,11 +307,11 @@
 
                             <th:block th:if="${#authentication.principal.username == user.username}">
                                 <a th:href="@{/posts/{id}/edit(id=${post.id})}" title="Edit Post"
-                                class="flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-800">
+                                   class="flex items-center justify-center w-9 h-9 rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-800">
                                     <i class="fas fa-pencil-alt"></i>
                                 </a>
                                 <form th:action="@{/posts/{id}/delete(id=${post.id})}" method="post"
-                                    onsubmit="return confirm('Are you sure you want to delete this post?');">
+                                      onsubmit="return confirm('Are you sure you want to delete this post?');">
                                     <button type="submit" title="Delete Post"
                                             class="flex items-center justify-center w-9 h-9 rounded-full text-red-500 hover:bg-red-100 hover:text-red-700">
                                         <i class="fas fa-trash-alt"></i>
@@ -318,8 +320,8 @@
                             </th:block>
 
                             <form th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}"
-                                th:action="@{/posts/{id}/toggle-suspend(id=${post.id})}" method="post">
-                                <button type="submit" 
+                                  th:action="@{/posts/{id}/toggle-suspend(id=${post.id})}" method="post">
+                                <button type="submit"
                                         th:title="${post.isSuspended} ? 'Unsuspend Post' : 'Suspend Post'"
                                         th:classappend="${post.isSuspended} ? 'text-green-600 hover:bg-green-100' : 'text-orange-500 hover:bg-orange-100'"
                                         class="flex items-center justify-center w-9 h-9 rounded-full transition-colors">
@@ -328,7 +330,8 @@
                             </form>
                         </div>
                     </div>
-                    <div classm="post-title-wrapper">
+
+                    <div class="post-title-wrapper">
                         <h3 class="text-2xl font-bold text-gray-900 mb-3 post-title-content">
                             <a th:if="${post.linkUrl != null and not #strings.isEmpty(post.linkUrl)}" th:href="${post.linkUrl}" target="_blank" class="hover:text-red-600" th:text="${post.title}">Post Title (Link)</a>
                             <a th:if="${post.linkUrl == null or #strings.isEmpty(post.linkUrl)}" href="#" class="hover:text-red-600" th:text="${post.title}">Post Title (Text/Media)</a>
@@ -435,7 +438,7 @@
                             <span>Like</span>
                         </a>
                         <span class="mx-2 font-bold text-gray-700" th:text="${post.votes.size()}">0</span>
-                        <a href="#" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 ml-2">
+                        <a th:href="@{/posts/{id}(id=${post.id})}" class="flex items-center py-2 px-3 rounded-lg hover:bg-gray-100 ml-2">
                             <i class="fas fa-comment mr-2"></i>
                             <span th:text="${post.comments.size()} + ' Comments'">0 Comments</span>
                         </a>
@@ -445,10 +448,43 @@
         </div>
 
         <div id="comments-tab-content" class="tab-content">
-            <div class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
-                <i class="fas fa-comments fa-2x mb-2"></i>
-                <h3 class="text-lg font-semibold">Comments</h3>
-                <p>(User's comments will be displayed here in a future update)</p>
+            <div th:if="${#lists.isEmpty(comments)}" class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
+                <i class="fas fa-comment fa-2x mb-2"></i>
+                <h3 class="text-lg font-semibold">No comments yet</h3>
+                <p>This user hasn't posted any comments.</p>
+            </div>
+
+            <div th:if="${not #lists.isEmpty(comments)}">
+                <div th:each="comment : ${comments}" class="bg-white p-6 rounded-lg shadow-md mb-4">
+
+                    <div th:if="${comment.post != null}">
+                        <div class="flex items-center text-sm text-gray-500 mb-3">
+                            <span class="bg-blue-100 text-blue-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">COMMENT</span>
+
+                            <span>Commented on </span>
+
+                            <a th:href="@{/posts/{id}(id=${comment.post.id})}"
+                               class="font-medium text-gray-800 ml-1 mr-2 hover:underline hover:text-red-600"
+                               th:text="${comment.post.title}">Post Title</a>
+
+                            <span>&middot;</span>
+
+                            <span class="ml-2 relative-time"
+                                  th:data-timestamp="${comment.createdAt}"
+                                  th:data-full-date="${#temporals.format(comment.createdAt, 'dd-MMM-yyyy HH:mm')}">
+                            </span>
+                        </div>
+
+                        <div class="pl-4 border-l-4 border-gray-200 bg-gray-50 p-3 rounded-r-lg">
+                            <p class="text-gray-800 italic" th:text="${comment.content}">Comment content...</p>
+                        </div>
+                    </div>
+
+                    <div th:if="${comment.post == null}" class="text-red-500 text-xs p-2">
+                        <i class="fas fa-exclamation-triangle"></i> Data Error: This comment is not linked to a post.
+                    </div>
+
+                </div>
             </div>
         </div>
 

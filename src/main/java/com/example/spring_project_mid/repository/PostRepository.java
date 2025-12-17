@@ -12,42 +12,37 @@ import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
 
-    // --- FOR OWNER / ADMIN (Shows everything) ---
-    @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images", "savedPosts"})
-    List<Post> findAllByOrderByCreatedAtDesc();
+
+
 
     @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images", "savedPosts"})
     List<Post> findAllByUserOrderByCreatedAtDesc(User user);
 
-    // --- FOR PUBLIC VIEW (Hides suspended posts, treats NULL as active) ---
+    // --- FOR PUBLIC VIEW (Hides suspended posts) ---
 
     // 1. For Homepage
-    @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images", "savedPosts"})
-    @Query("SELECT p FROM Post p WHERE (p.suspended = false OR p.suspended IS NULL) ORDER BY p.createdAt DESC")
-    List<Post> findAllBySuspendedFalseOrderByCreatedAtDesc();
 
+    @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images", "savedPosts"})
+    List<Post> findAllByOrderByCreatedAtDesc();
     // 2. For Visiting other profiles
     @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images", "savedPosts"})
-    @Query("SELECT p FROM Post p WHERE p.user = :user AND (p.suspended = false OR p.suspended IS NULL) ORDER BY p.createdAt DESC")
-    List<Post> findAllByUserAndSuspendedFalseOrderByCreatedAtDesc(@Param("user") User user);
+    List<Post> findAllByUserAndSuspendedFalseOrderByCreatedAtDesc(User user);
 
-    // 3. Updated Search: Title Starts With Query (Prefix Match) & NULL Suspended Handling
+    // 3. Updated Search (Only searches non-suspended posts)
     @EntityGraph(attributePaths = {"user", "faculty", "votes", "comments", "images", "savedPosts"})
-    @Query("SELECT p FROM Post p WHERE " +
-            "(LOWER(p.title) LIKE LOWER(CONCAT(:query, '%')) OR " +  // Title: Starts With
-            " LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%'))) " + // Content: Contains
-            "AND (p.suspended = false OR p.suspended IS NULL) " +
+    @Query("SELECT p FROM Post p WHERE (" +
+            "LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(p.user.username) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(p.user.displayName) LIKE LOWER(CONCAT('%', :query, '%'))" +
+            ") AND p.suspended = false " +
             "ORDER BY p.createdAt DESC")
     List<Post> searchPosts(@Param("query") String query);
 
     @EntityGraph(attributePaths = {"user", "faculty", "images"})
     List<Post> findAllByFacultyOrderByCreatedAtDesc(Faculty faculty);
 
-    // 4. Faculty Search: Title Starts With Query
     @EntityGraph(attributePaths = {"user", "faculty", "images"})
-    @Query("SELECT p FROM Post p WHERE p.faculty = :faculty AND " +
-            "(LOWER(p.title) LIKE LOWER(CONCAT(:keyword, '%')) OR " + // Title: Starts With
-            " LOWER(p.content) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
-            "ORDER BY p.createdAt DESC")
-    List<Post> searchPostsInFaculty(@Param("keyword") String keyword, @Param("faculty") Faculty faculty);
+    @Query("SELECT p FROM Post p WHERE p.faculty = :faculty AND (LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(p.content) LIKE LOWER(CONCAT('%', :query, '%'))) ORDER BY p.createdAt DESC")
+    List<Post> searchPostsInFaculty(@Param("query") String query, @Param("faculty") Faculty faculty);
 }
