@@ -40,13 +40,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/login", "/",
-                                "/register", "/verify-otp",
-                                "/forgot-password", "/reset-password",
-                                "/api/auth/**",
-                                "/css/**", "/js/**", "/images/**",
-                                "/profile/edit",
-                                "/favicon.ico"
+                                "/login",
+                                "/register",
+                                "/verify-otp",
+                                "/forgot-password",       // Add this
+                                "/verify-forgot-otp",    // Add this
+                                "/reset-password",       // Add this
+                                "/css/**", "/js/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
