@@ -10,16 +10,17 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
+    // For the Owner's Profile: Shows all posts including suspended ones
     @EntityGraph(attributePaths = {"user", "votes", "comments", "images", "savedPosts"})
     List<Post> findAllByUserOrderByCreatedAtDesc(User user);
 
     // --- FOR PUBLIC VIEW (Hides suspended posts) ---
 
-    // 1. For Homepage
-
+    // 1. Updated: For Homepage (Excludes suspended posts)
     @EntityGraph(attributePaths = {"user", "votes", "comments", "images", "savedPosts"})
-    List<Post> findAllByOrderByCreatedAtDesc();
-    // 2. For Visiting other profiles
+    List<Post> findAllBySuspendedFalseOrderByCreatedAtDesc(); // Added "SuspendedFalse"
+
+    // 2. For Visiting other profiles (Correctly hides suspended posts)
     @EntityGraph(attributePaths = {"user", "votes", "comments", "images", "savedPosts"})
     List<Post> findAllByUserAndSuspendedFalseOrderByCreatedAtDesc(User user);
 

@@ -237,10 +237,20 @@ public class PostController {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));
 
-        post.setSuspended(!post.isSuspended());
+        boolean newStatus = !post.isSuspended();
+        post.setSuspended(newStatus);
         postRepository.save(post);
 
-        // Redirect back to the previous page (the profile page)
+        // Notify post owner if the post was just suspended
+        if (newStatus) {
+            notificationRepository.save(Notification.builder()
+                    .user(post.getUser())
+                    .message("Your post '" + post.getTitle() + "' has been suspended by an administrator.")
+                    .isRead(false)
+                    .link("/posts/" + post.getId())
+                    .build());
+        }
+
         String referer = request.getHeader("Referer");
         return "redirect:" + (referer != null ? referer : "/");
     }
