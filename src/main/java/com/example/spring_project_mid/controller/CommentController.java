@@ -7,6 +7,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @Controller
 @RequestMapping("/comments")
@@ -93,5 +95,51 @@ public class CommentController {
                     .link(link)
                     .build());
         }
+    }
+
+    // --- SUSPEND/UNSUSPEND COMMENT (ADMIN ONLY) ---
+    @PostMapping("/{id}/toggle-suspend")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public String toggleSuspend(@PathVariable Long id, HttpServletRequest request) {
+        Comment comment = commentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Comment not found"));
+
+        boolean newStatus = !comment.isSuspended();
+        comment.setSuspended(newStatus);
+        commentRepository.save(comment);
+
+        String postLink = "/posts/" + comment.getPost().getId();
+
+        if (newStatus) {
+            // CASE: Suspending
+            // 1. Notify the Comment Owner
+            notificationRepository.save(Notification.builder()
+                    .user(comment.getUser())
+                    .message("Your comment on '" + comment.getPost().getTitle() + "' has been suspended by a moderator for violating community guidelines.")
+                    .isRead(false)
+                    .link(postLink)
+                    .build());
+
+            // 2. Notify the Post Owner (if they are not the comment owner)
+            if (!comment.getPost().getUser().getId().equals(comment.getUser().getId())) {
+                notificationRepository.save(Notification.builder()
+                        .user(comment.getPost().getUser())
+                        .message("A comment by " + comment.getUser().getUsername() + " on your post was suspended by a moderator.")
+                        .isRead(false)
+                        .link(postLink)
+                        .build());
+            }
+        } else {
+            // CASE: Unsuspending (Optional: Notify comment owner they are back)
+            notificationRepository.save(Notification.builder()
+                    .user(comment.getUser())
+                    .message("Your comment on '" + comment.getPost().getTitle() + "' has been unsuspended.")
+                    .isRead(false)
+                    .link(postLink)
+                    .build());
+        }
+
+        String referer = request.getHeader("Referer");
+        return "redirect:" + (referer != null ? referer : postLink);
     }
 }
