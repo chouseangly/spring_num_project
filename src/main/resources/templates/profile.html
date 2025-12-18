@@ -77,7 +77,7 @@
 
     <div>
         <div id="overview-tab-content" class="tab-content">
-            <div th:if="${activities.isEmpty()}" class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
+            <div th:if="${activities == null or activities.isEmpty()}" class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
                 <i class="fas fa-stream fa-2x mb-2"></i>
                 <h3 class="text-lg font-semibold">No activity yet</h3>
                 <p>Posts and comments will appear here.</p>
@@ -101,7 +101,7 @@
                                       th:data-full-date="${#temporals.format(activity.createdAt, 'dd-MMM-yyyy HH:mm')}"
                                       th:title="'Click to toggle format'">
                                 </span>
-                                <span th:if="${activity.isSuspended}"
+                                <span th:if="${activity.suspended}"
                                       class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded ml-2">
                                     SUSPENDED
                                 </span>
@@ -123,14 +123,14 @@
                                     </form>
                                 </th:block>
 
-                                <form th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}" 
-                                    method="post">
-                                    <button type="button" 
-                                            th:onclick="'openSuspendModal(\'/posts/' + ${activity.id} + '/toggle-suspend\', ' + ${activity.isSuspended} + ')'"
-                                            th:title="${activity.isSuspended} ? 'Unsuspend Post' : 'Suspend Post'"
-                                            th:classappend="${activity.isSuspended} ? 'text-green-600 hover:bg-green-100' : 'text-orange-500 hover:bg-orange-100'"
+                                <form th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}"
+                                      method="post">
+                                    <button type="button"
+                                            th:onclick="'openSuspendModal(\'/posts/' + ${activity.id} + '/toggle-suspend\', ' + ${activity.suspended} + ')'"
+                                            th:title="${activity.suspended} ? 'Unsuspend Post' : 'Suspend Post'"
+                                            th:classappend="${activity.suspended} ? 'text-green-600 hover:bg-green-100' : 'text-orange-500 hover:bg-orange-100'"
                                             class="flex items-center justify-center w-9 h-9 rounded-full transition-colors">
-                                        <i th:class="${activity.isSuspended} ? 'fas fa-check-circle' : 'fas fa-ban'"></i>
+                                        <i th:class="${activity.suspended} ? 'fas fa-check-circle' : 'fas fa-ban'"></i>
                                     </button>
                                 </form>
                             </div>
@@ -293,7 +293,7 @@
                                   th:data-full-date="${#temporals.format(post.createdAt, 'dd-MMM-yyyy HH:mm')}"
                                   th:title="'Click to toggle format'">
                             </span>
-                            <span th:if="${post.isSuspended}"
+                            <span th:if="${post.suspended}"
                                   class="bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded ml-2">
                                 SUSPENDED
                             </span>
@@ -315,14 +315,14 @@
                                 </form>
                             </th:block>
 
-                            <form th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}" 
-                                method="post">
-                                <button type="button" 
-                                        th:onclick="'openSuspendModal(\'/posts/' + ${post.id} + '/toggle-suspend\', ' + ${post.isSuspended} + ')'"
-                                        th:title="${post.isSuspended} ? 'Unsuspend Post' : 'Suspend Post'"
-                                        th:classappend="${post.isSuspended} ? 'text-green-600 hover:bg-green-100' : 'text-orange-500 hover:bg-orange-100'"
+                            <form th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}"
+                                  method="post">
+                                <button type="button"
+                                        th:onclick="'openSuspendModal(\'/posts/' + ${post.id} + '/toggle-suspend\', ' + ${post.suspended} + ')'"
+                                        th:title="${post.suspended} ? 'Unsuspend Post' : 'Suspend Post'"
+                                        th:classappend="${post.suspended} ? 'text-green-600 hover:bg-green-100' : 'text-orange-500 hover:bg-orange-100'"
                                         class="flex items-center justify-center w-9 h-9 rounded-full transition-colors">
-                                    <i th:class="${post.isSuspended} ? 'fas fa-check-circle' : 'fas fa-ban'"></i>
+                                    <i th:class="${post.suspended} ? 'fas fa-check-circle' : 'fas fa-ban'"></i>
                                 </button>
                             </form>
                         </div>
@@ -486,7 +486,7 @@
         </div>
 
         <div id="saved-tab-content" class="tab-content">
-            <div th:if="${savedPosts.isEmpty()}" class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
+            <div th:if="${savedPosts == null or savedPosts.isEmpty()}" class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
                 <i class="fas fa-bookmark fa-3x mb-4"></i>
                 <h3 class="text-xl font-semibold">No saved posts yet.</h3>
                 <p>Posts you save will appear here.</p>
@@ -607,7 +607,6 @@
     </div>
 </div>
 
-<!-- Confirmation model -->
 <div id="suspendModal" class="relative z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
     <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
@@ -791,7 +790,7 @@
         const text = document.getElementById('suspend-modal-text');
 
         form.action = actionUrl;
-        
+
         // Customize text based on whether we are suspending or unsuspending
         if (isCurrentlySuspended) {
             title.innerText = "Unsuspend Post";

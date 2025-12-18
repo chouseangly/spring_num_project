@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Reset Code</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'Battambang', 'sans-serif'] } } } }</script>
+</head>
+<body data-theme='dark' class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 min-h-screen flex items-center justify-center p-4">
+<div class="max-w-lg mx-auto text-center bg-white px-4 sm:px-8 py-10 rounded-xl shadow">
+    <header class="mb-6">
+        <h1 class="text-2xl font-bold mb-1">Verify Reset Code</h1>
+        <p class="text-[15px] text-slate-500">Enter the 6-digit code sent to <span class="font-semibold text-slate-900" th:text="${verifyOtpRequest.email}"></span></p>
+    </header>
+
+    <form th:action="@{/verify-forgot-otp}" method="post" th:object="${verifyOtpRequest}" id="otpForm">
+        <input type="hidden" th:field="*{otp}" id="fullOtp"/>
+        <input type="hidden" th:field="*{email}"/>
+
+        <div th:if="${error}" class="mb-4 p-3 bg-red-100 font-semibold text-red-700 rounded-lg text-sm" th:text="${error}"></div>
+
+        <div class="flex items-center justify-center gap-3" id="otpInputs">
+            <input type="text" maxlength="1" required class="otp-input w-14 h-14 text-center text-2xl font-extrabold text-slate-900 bg-slate-100 border-2 border-transparent hover:border-slate-200 rounded p-4 outline-none focus:bg-white focus:border-red-400 focus:ring-2 focus:ring-red-100">
+            <input type="text" maxlength="1" required class="otp-input w-14 h-14 text-center text-2xl font-extrabold text-slate-900 bg-slate-100 border-2 border-transparent hover:border-slate-200 rounded p-4 outline-none focus:bg-white focus:border-red-400 focus:ring-2 focus:ring-red-100">
+            <input type="text" maxlength="1" required class="otp-input w-14 h-14 text-center text-2xl font-extrabold text-slate-900 bg-slate-100 border-2 border-transparent hover:border-slate-200 rounded p-4 outline-none focus:bg-white focus:border-red-400 focus:ring-2 focus:ring-red-100">
+            <input type="text" maxlength="1" required class="otp-input w-14 h-14 text-center text-2xl font-extrabold text-slate-900 bg-slate-100 border-2 border-transparent hover:border-slate-200 rounded p-4 outline-none focus:bg-white focus:border-red-400 focus:ring-2 focus:ring-red-100">
+            <input type="text" maxlength="1" required class="otp-input w-14 h-14 text-center text-2xl font-extrabold text-slate-900 bg-slate-100 border-2 border-transparent hover:border-slate-200 rounded p-4 outline-none focus:bg-white focus:border-red-400 focus:ring-2 focus:ring-red-100">
+            <input type="text" maxlength="1" required class="otp-input w-14 h-14 text-center text-2xl font-extrabold text-slate-900 bg-slate-100 border-2 border-transparent hover:border-slate-200 rounded p-4 outline-none focus:bg-white focus:border-red-400 focus:ring-2 focus:ring-red-100">
+        </div>
+
+        <div class="text-sm text-gray-600 mt-6">
+            Didn't receive code?
+            <span id="timer-container" class="font-semibold text-gray-400">Resend in <span id="timer">60</span>s</span>
+            <a th:href="@{/forgot-password}" id="resend-link" class="hidden text-red-600 font-semibold hover:text-red-700">Resend</a>
+        </div>
+
+        <button type="submit" class="w-full mt-4 bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors">
+            Verify Code
+        </button>
+    </form>
+</div>
+
+<script>
+    const otpInputs = document.querySelectorAll('.otp-input');
+    const fullOtpInput = document.getElementById('fullOtp');
+    const timerElement = document.getElementById('timer');
+    const timerContainer = document.getElementById('timer-container');
+    const resendLink = document.getElementById('resend-link');
+    let timeLeft = 60;
+
+    const countdown = setInterval(() => {
+        timeLeft--;
+        timerElement.textContent = timeLeft;
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            timerContainer.classList.add('hidden');
+            resendLink.classList.remove('hidden');
+        }
+    }, 1000);
+
+    otpInputs.forEach((input, index) => {
+        // Handle normal typing
+        input.addEventListener('input', (e) => {
+            input.value = input.value.replace(/[^0-9]/g, '');
+            if (input.value && index < otpInputs.length - 1) otpInputs[index + 1].focus();
+            updateFullOtp();
+        });
+
+        // Handle backspace
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !input.value && index > 0) {
+                otpInputs[index - 1].focus();
+                updateFullOtp();
+            }
+        });
+
+        // Handle Paste functionality
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').slice(0, 6).replace(/[^0-9]/g, '');
+
+            pastedData.split('').forEach((char, charIndex) => {
+                if (otpInputs[charIndex]) {
+                    otpInputs[charIndex].value = char;
+                }
+            });
+
+            // Focus the correct field after paste
+            const nextIndex = Math.min(pastedData.length, otpInputs.length - 1);
+            otpInputs[nextIndex].focus();
+
+            updateFullOtp();
+        });
+    });
+
+    function updateFullOtp() {
+        fullOtpInput.value = Array.from(otpInputs).map(i => i.value).join('');
+    }
+
+    window.onload = () => otpInputs[0].focus();
+</script>
+</body>
+</html>

@@ -153,6 +153,27 @@ public class AuthService {
         userRepository.save(user);
     }
 
+
+
+    public void sendOtp(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with this email"));
+
+        String otp = generateOtp();
+        user.setVerificationOtp(otp);
+        user.setOtpExpiryTime(LocalDateTime.now().plusMinutes(1)); // 1 minute expiry
+        userRepository.save(user);
+
+        emailService.sendOtpEmail(user.getEmail(), otp);
+    }
+
+    public void updatePassword(String email, String newPassword) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+    }
+
     /**
      * Generates a 6-digit OTP.
      */

@@ -27,6 +27,7 @@ CREATE TABLE users (
                        reset_token_expiry_time TIMESTAMP
 );
 
+delete from users where id = 4;
 
 -- 3) Now add FK for faculties.owner_id
 ALTER TABLE faculties

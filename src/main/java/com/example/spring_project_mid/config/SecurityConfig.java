@@ -40,14 +40,18 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/login", "/",
-                                "/register", "/verify-otp",
-                                "/forgot-password", "/reset-password",
-                                "/api/auth/**",
-                                "/css/**", "/js/**", "/images/**",
-                                "/profile/edit",
-                                "/favicon.ico"
+                                "/login",
+                                "/register",
+                                "/verify-otp",
+                                "/forgot-password",
+                                "/verify-otp-forgot",    // Add this (GET mapping)
+                                "/verify-forgot-otp",   // Add this (POST mapping)
+                                "/reset-new-password",  // Add this (GET mapping)
+                                "/reset-password",      // Add this (POST mapping)
+                                "/users/**",
+                                "/css/**", "/js/**"
                         ).permitAll()
+                        .requestMatchers("/admin/**").hasRole("SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form

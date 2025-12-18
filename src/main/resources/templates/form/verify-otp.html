@@ -50,9 +50,11 @@
 
         <div class="text-sm text-gray-600 dark:text-gray-300 mt-6">
             Didn't receive code?
-            <a th:href="@{/resend-otp(email=${email})}" 
-            class="text-red-600 font-semibold hover:text-red-700 focus:outline-none">
-            Resend
+            <span id="timer-container" class="font-semibold text-gray-400">
+                Resend in <span id="timer">60</span>s
+            </span>
+            <a th:href="@{/register}" id="resend-link" class="hidden text-red-600 font-semibold hover:text-red-700 focus:outline-none cursor-pointer">
+                Resend
             </a>
         </div>
 
@@ -97,6 +99,24 @@
     const fullOtpInput = document.getElementById('fullOtp');
     const otpForm = document.getElementById('otpForm');
 
+    // Countdown elements
+    const timerElement = document.getElementById('timer');
+    const timerContainer = document.getElementById('timer-container');
+    const resendLink = document.getElementById('resend-link');
+    let timeLeft = 60; // 1 minute as per AuthService.java
+
+    // Timer logic
+    const countdown = setInterval(() => {
+        timeLeft--;
+        timerElement.textContent = timeLeft;
+
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            timerContainer.classList.add('hidden');
+            resendLink.classList.remove('hidden');
+        }
+    }, 1000);
+
     otpInputs.forEach((input, index) => {
         input.addEventListener('input', (e) => {
             input.value = input.value.replace(/[^0-9]/g, '');
@@ -123,7 +143,7 @@
                 otpInputs[index + i].value = pasteData[i];
             }
 
-            const nextFocusIndex = Math.min(index + pasteLength, otpInputs.length - 1);
+            const nextFocusIndex = Math.min(index + (pasteLength - 1), otpInputs.length - 1);
             otpInputs[nextFocusIndex].focus();
 
             updateFullOtp();
@@ -141,6 +161,8 @@
     otpForm.addEventListener('submit', (e) => {
         updateFullOtp();
         if (fullOtpInput.value.length !== otpInputs.length) {
+            // Optional: prevent submit if incomplete
+            // e.preventDefault();
         }
     });
 
