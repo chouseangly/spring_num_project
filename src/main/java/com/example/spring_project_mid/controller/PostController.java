@@ -48,11 +48,6 @@ public class PostController {
     ) {
         post.setUser(user);
 
-        // --- ADD THIS LINE ---
-        // Automatically assign the post to the user's faculty
-        post.setFaculty(user.getFaculty());
-        // --------------------
-
         Set<Image> images = post.getImages();
 
         if (mediaUrls != null && !mediaUrls.isEmpty()) {

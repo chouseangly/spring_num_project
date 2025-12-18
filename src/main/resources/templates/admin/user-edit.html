@@ -40,21 +40,7 @@
                                 th:selected="${role == user.role}"></option>
                     </select>
                     <p class="text-xs text-gray-500 mt-1">
-                        Select <strong>FACULTY_ADMIN</strong> to give moderation rights.
-                    </p>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Assign Faculty</label>
-                    <select name="facultyId" class="w-full p-2 rounded-lg border-2 border-gray-300 text-base text-gray-900 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200 sm:text-sm/6 transition-colors duration-200 ease-in-out">
-                        <option value="" th:selected="${user.faculty == null}">-- No Faculty --</option>
-                        <option th:each="fac : ${allFaculties}"
-                                th:value="${fac.id}"
-                                th:text="${fac.name}"
-                                th:selected="${user.faculty != null && user.faculty.id == fac.id}"></option>
-                    </select>
-                    <p class="text-xs text-gray-500 mt-1">
-                        Required if role is Faculty Admin.
+                        Select <strong>ADMIN</strong> to give moderation rights.
                     </p>
                 </div>
 
