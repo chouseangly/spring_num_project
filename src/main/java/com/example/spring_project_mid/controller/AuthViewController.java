@@ -104,7 +104,6 @@ public class AuthViewController {
         return "form/login";
     }
 
-
     @GetMapping("/")
     public String showHomePage(Model model) {
         List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
@@ -115,11 +114,77 @@ public class AuthViewController {
     @GetMapping("/profile")
     public String showProfilePage(Model model) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
         model.addAttribute("user", user);
         model.addAttribute("posts", postRepository.findAllByUserOrderByCreatedAtDesc(user));
         model.addAttribute("isOwner", true);
+
+        // FIX: Add empty activities list to prevent template crash
+        model.addAttribute("activities", new ArrayList<>());
+
         return "profile";
+    }
+
+    /**
+     * Fixed: Added mapping to handle profile viewing for other users.
+     * This prevents the 404 error when clicking usernames in the post feed.
+     */
+    @GetMapping("/users/{username}")
+    public String showUserProfile(@PathVariable String username, Model model) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+        boolean isOwner = currentUsername.equals(username);
+
+        model.addAttribute("user", user);
+        model.addAttribute("posts", postRepository.findAllByUserOrderByCreatedAtDesc(user));
+        model.addAttribute("isOwner", isOwner);
+
+        // FIX: Add empty activities list to prevent template crash
+        model.addAttribute("activities", new ArrayList<>());
+
+        return "profile";
+    }
+
+    @GetMapping("/profile/edit")
+    public String showEditProfileForm(Model model) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        model.addAttribute("user", user);
+        return "form/edit-profile"; // Points to src/main/resources/templates/form/edit-profile.html
+    }
+
+    @PostMapping("/profile/edit")
+    public String handleEditProfile(@ModelAttribute User updatedUser,
+                                    @RequestParam(value = "avatar", required = false) MultipartFile avatarFile,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            String username = SecurityContextHolder.getContext().getAuthentication().getName();
+            User currentUser = userRepository.findByUsername(username)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Update fields
+            currentUser.setDisplayName(updatedUser.getDisplayName());
+            currentUser.setBio(updatedUser.getBio());
+
+            // Handle Avatar Upload if a new file is provided
+            if (avatarFile != null && !avatarFile.isEmpty()) {
+                String avatarUrl = pinataService.uploadFileToPinata(avatarFile);
+                currentUser.setAvatarUrl(avatarUrl);
+            }
+
+            userRepository.save(currentUser);
+            redirectAttributes.addFlashAttribute("success", "Profile updated successfully!");
+            return "redirect:/profile";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", "Failed to update profile: " + e.getMessage());
+            return "redirect:/profile/edit";
+        }
     }
 
     @GetMapping("/forgot-password")
@@ -133,7 +198,7 @@ public class AuthViewController {
         try {
             authService.sendOtp(request.getEmail());
             redirectAttributes.addAttribute("email", request.getEmail());
-            return "redirect:/verify-otp-forgot"; // Redirects to the GET mapping below
+            return "redirect:/verify-otp-forgot";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/forgot-password";
@@ -145,7 +210,7 @@ public class AuthViewController {
         VerifyOtpRequest request = new VerifyOtpRequest();
         request.setEmail(email);
         model.addAttribute("verifyOtpRequest", request);
-        return "form/verify-otp-forgot"; // Matches your filename verify-otp-forgot.html
+        return "form/verify-otp-forgot";
     }
 
     @PostMapping("/verify-forgot-otp")
@@ -153,7 +218,7 @@ public class AuthViewController {
         try {
             authService.verifyOtp(request);
             redirectAttributes.addAttribute("email", request.getEmail());
-            return "redirect:/reset-new-password"; // Redirects to the reset password page
+            return "redirect:/reset-new-password";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             redirectAttributes.addAttribute("email", request.getEmail());

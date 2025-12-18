@@ -48,8 +48,10 @@ public class SecurityConfig {
                                 "/verify-forgot-otp",   // Add this (POST mapping)
                                 "/reset-new-password",  // Add this (GET mapping)
                                 "/reset-password",      // Add this (POST mapping)
+                                "/users/**",
                                 "/css/**", "/js/**"
                         ).permitAll()
+                        .requestMatchers("/admin/**").hasRole("SUPER_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .formLogin(form -> form
