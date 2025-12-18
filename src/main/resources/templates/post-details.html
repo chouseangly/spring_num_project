@@ -21,8 +21,6 @@
     <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
         <div class="p-6">
             <div class="flex items-center text-sm text-gray-500 mb-4">
-                <span th:if="${post.faculty != null}" class="font-semibold text-gray-800 mr-2" th:text="${post.faculty.name}">Faculty</span>
-                <span th:if="${post.faculty != null}" class="mr-2">&middot;</span>
                 <span>Posted by </span>
                 <a th:href="@{'/users/' + ${post.user.username}}" class="font-medium text-gray-900 ml-1 hover:underline" th:text="${post.user.username}">User</a>
                 <span class="mx-2">&middot;</span>

@@ -49,10 +49,6 @@ public class User implements UserDetails {
     @Column(name = "role", length = 20, nullable = false)
     private Role role = Role.STUDENT;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "faculty_id")
-    private Faculty faculty;
-
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
