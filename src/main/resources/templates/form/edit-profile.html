@@ -54,7 +54,7 @@
             height: 100%;
             border-radius: 9999px;
             overflow: hidden;
-            display: flex;
+            display: grid;
             align-items: center;
             justify-content: center;
             background: #e5e7eb; /* gray-200 */
@@ -109,7 +109,7 @@
 
         /* Ring styles (three variants) */
         .ring-gradient {
-            background: conic-gradient(from 180deg at 50% 50%, #f58529 0deg, #dd2a7b 120deg, #feda77 240deg);
+            background: rgb(204, 203, 203);
         }
         .ring-solid {
             background: #ffffff; /* inner background */
@@ -187,12 +187,15 @@
                 <div id="avatarWrap" class="avatar-wrap ring-gradient" tabindex="0" title="Click to upload or drag & drop">
                     <!-- inner circle -->
                     <div class="avatar-inner" id="avatarInner">
-                        <img th:src="${user.avatarUrl != null ? user.avatarUrl : ''}"
-                             alt="Avatar"
-                             id="imagePreview"
-                             class="hidden"
-                             th:classappend="${user.avatarUrl == null} ? 'hidden' : ''">
-                        <div id="iconPreview" class="text-gray-600">
+                        <th:block th:if="${user.avatarUrl != null && !#strings.isEmpty(user.avatarUrl)}">
+                            <img th:src="@{${user.avatarUrl}}" 
+                                alt="Avatar" 
+                                id="imagePreview">
+                        </th:block>
+
+                        <div th:if="${user.avatarUrl == null || #strings.isEmpty(user.avatarUrl)}" 
+                            id="iconPreview" 
+                            class="text-gray-600">
                             <i class="fas fa-user fa-4x"></i>
                         </div>
                     </div>
@@ -201,11 +204,6 @@
                     <div class="drop-hint" id="dropHint">
                         Drop to upload
                     </div>
-
-                    <!-- floating upload button (label) -->
-                    <label for="file" class="upload-btn cursor-pointer" title="Upload a new photo" id="uploadBtn" aria-hidden="false">
-                        <i class="fa-solid fa-camera text-red-600"></i>
-                    </label>
                 </div>
 
                 <!-- actual hidden file input -->
@@ -333,9 +331,21 @@
     }
 
     function showImage(url) {
-        imagePreview.src = url;
-        imagePreview.classList.remove('hidden');
-        iconPreview.classList.add('hidden');
+        // If the image tag doesn't exist (because th:if removed it), create it
+        if (!imagePreview) {
+            const newImg = document.createElement('img');
+            newImg.id = 'imagePreview';
+            newImg.alt = 'Avatar';
+            document.getElementById('avatarInner').prepend(newImg);
+        }
+        
+        const img = document.getElementById('imagePreview');
+        img.src = url;
+        img.classList.remove('hidden');
+        
+        if (iconPreview) {
+            iconPreview.classList.add('hidden');
+        }
     }
 
     // Keyboard accessibility: Enter/Space triggers file input
@@ -352,10 +362,16 @@
 
     // If Thymeleaf server supplies a user.avatarUrl, show it on load (keeps your existing logic)
     document.addEventListener('DOMContentLoaded', () => {
-        // If the server populated imagePreview.src via th:src it won't be empty.
-        if (imagePreview && imagePreview.getAttribute('src')) {
-            imagePreview.classList.remove('hidden');
-            if (iconPreview) iconPreview.classList.add('hidden');
+        const img = document.getElementById('imagePreview');
+        const icon = document.getElementById('iconPreview');
+        
+        // If image exists and has a source, hide the icon
+        if (img && img.getAttribute('src') && img.getAttribute('src') !== '') {
+            if (icon) icon.classList.add('hidden');
+        } else if (img) {
+            // If image exists but has no source, hide it and show icon
+            img.classList.add('hidden');
+            if (icon) icon.classList.remove('hidden');
         }
     });
 </script>
