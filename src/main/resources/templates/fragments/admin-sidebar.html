@@ -22,13 +22,6 @@
                 <i class="fas fa-users w-6 text-center"></i>
                 <span class="ml-3">User Management</span>
             </a>
-
-            <a th:href="@{/admin/faculties}"
-               class="flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors"
-               th:classappend="${#strings.startsWith(requestURI, '/admin/faculties')} ? 'bg-red-50 text-red-600' : 'text-gray-600 hover:bg-gray-50 hover:text-red-600'">
-                <i class="fas fa-university w-6 text-center"></i>
-                <span class="ml-3">Faculties</span>
-            </a>
         </nav>
     </div>
 </div>

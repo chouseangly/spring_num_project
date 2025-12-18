@@ -178,7 +178,7 @@ public class AuthViewController {
     public String showHomePage(Model model) {
         // CHANGED: Use findAllByOrderByCreatedAtDesc() to show ALL posts (including suspended)
         // Previous: List<Post> posts = postRepository.findAllBySuspendedFalseOrderByCreatedAtDesc();
-        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+        List<Post> posts = postRepository.findAllBySuspendedFalseOrderByCreatedAtDesc();
 
         model.addAttribute("posts", posts);
         return "home";
@@ -196,7 +196,7 @@ public class AuthViewController {
             posts = postRepository.searchPosts(query.trim());
         } else {
             // CHANGED: Match the homepage behavior
-            posts = postRepository.findAllByOrderByCreatedAtDesc();
+            posts = postRepository.findAllBySuspendedFalseOrderByCreatedAtDesc();
         }
         model.addAttribute("posts", posts);
         model.addAttribute("searchQuery", query);

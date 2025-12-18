@@ -91,9 +91,6 @@
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex items-center text-sm text-gray-500 flex-wrap">
                                 <span class="bg-red-100 text-red-800 text-xs font-semibold mr-2 px-2.5 py-0.5 rounded">POST</span>
-
-                                <span th:if="${activity.faculty != null}" class="font-semibold text-gray-800 mr-2" th:text="${activity.faculty.name}">Faculty Name</span>
-                                <span th:if="${activity.faculty != null}" class="mr-2">&middot;</span>
                                 <span>Posted by </span>
                                 <a th:href="@{'/users/' + ${activity.user.username}}"
                                    class="font-medium text-gray-700 ml-1 hover:underline"
@@ -126,9 +123,10 @@
                                     </form>
                                 </th:block>
 
-                                <form th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}"
-                                      th:action="@{/posts/{id}/toggle-suspend(id=${activity.id})}" method="post">
-                                    <button type="submit"
+                                <form th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}" 
+                                    method="post">
+                                    <button type="button" 
+                                            th:onclick="'openSuspendModal(\'/posts/' + ${activity.id} + '/toggle-suspend\', ' + ${activity.isSuspended} + ')'"
                                             th:title="${activity.isSuspended} ? 'Unsuspend Post' : 'Suspend Post'"
                                             th:classappend="${activity.isSuspended} ? 'text-green-600 hover:bg-green-100' : 'text-orange-500 hover:bg-orange-100'"
                                             class="flex items-center justify-center w-9 h-9 rounded-full transition-colors">
@@ -285,8 +283,6 @@
                 <div class="p-6">
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex items-center text-sm text-gray-500 flex-wrap">
-                            <span th:if="${post.faculty != null}" class="font-semibold text-gray-800 mr-2" th:text="${post.faculty.name}">Faculty Name</span>
-                            <span th:if="${post.faculty != null}" class="mr-2">&middot;</span>
                             <span>Posted by </span>
                             <a th:href="@{'/users/' + ${post.user.username}}"
                                class="font-medium text-gray-700 ml-1 hover:underline"
@@ -319,9 +315,10 @@
                                 </form>
                             </th:block>
 
-                            <form th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}"
-                                  th:action="@{/posts/{id}/toggle-suspend(id=${post.id})}" method="post">
-                                <button type="submit"
+                            <form th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}" 
+                                method="post">
+                                <button type="button" 
+                                        th:onclick="'openSuspendModal(\'/posts/' + ${post.id} + '/toggle-suspend\', ' + ${post.isSuspended} + ')'"
                                         th:title="${post.isSuspended} ? 'Unsuspend Post' : 'Suspend Post'"
                                         th:classappend="${post.isSuspended} ? 'text-green-600 hover:bg-green-100' : 'text-orange-500 hover:bg-orange-100'"
                                         class="flex items-center justify-center w-9 h-9 rounded-full transition-colors">
@@ -501,8 +498,6 @@
                 <div class="p-6">
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex items-center text-sm text-gray-500 flex-wrap">
-                            <span th:if="${post.faculty != null}" class="font-semibold text-gray-800 mr-2" th:text="${post.faculty.name}">Faculty</span>
-                            <span th:if="${post.faculty != null}" class="mr-2">&middot;</span>
                             <span>Posted by </span>
                             <span class="font-medium text-gray-700 ml-1" th:text="${post.user.username}">User</span>
                             <span class="mx-2">&middot;</span>
@@ -607,6 +602,36 @@
                 <i class="fas fa-history fa-2x mb-2"></i>
                 <h3 class="text-lg font-semibold">History</h3>
                 <p>(Recently viewed posts will appear here)</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation model -->
+<div id="suspendModal" class="relative z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm"></div>
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-ban text-orange-600"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                            <h3 class="text-lg font-semibold leading-6 text-gray-900" id="suspend-modal-title">Suspend Post</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500" id="suspend-modal-text">Are you sure you want to suspend this post? The owner will be notified.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <form id="suspendForm" method="post" action="">
+                        <button type="submit" class="inline-flex w-full justify-center rounded-md bg-orange-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-orange-500 sm:ml-3 sm:w-auto">Confirm</button>
+                    </form>
+                    <button type="button" onclick="closeSuspendModal()" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancel</button>
+                </div>
             </div>
         </div>
     </div>
@@ -756,6 +781,32 @@
             document.querySelector('.profile-tab[data-tab="posts"]').click();
         }
     });
+</script>
+
+<script>
+    function openSuspendModal(actionUrl, isCurrentlySuspended) {
+        const modal = document.getElementById('suspendModal');
+        const form = document.getElementById('suspendForm');
+        const title = document.getElementById('suspend-modal-title');
+        const text = document.getElementById('suspend-modal-text');
+
+        form.action = actionUrl;
+        
+        // Customize text based on whether we are suspending or unsuspending
+        if (isCurrentlySuspended) {
+            title.innerText = "Unsuspend Post";
+            text.innerText = "Are you sure you want to unsuspend this post and make it public again?";
+        } else {
+            title.innerText = "Suspend Post";
+            text.innerText = "Are you sure you want to suspend this post? The owner will be notified.";
+        }
+
+        modal.classList.remove('hidden');
+    }
+
+    function closeSuspendModal() {
+        document.getElementById('suspendModal').classList.add('hidden');
+    }
 </script>
 
 </body>

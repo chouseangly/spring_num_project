@@ -33,12 +33,6 @@ public class Post {
     @EqualsAndHashCode.Exclude
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "faculty_id")
-    @ToString.Exclude
-    @EqualsAndHashCode.Exclude
-    private Faculty faculty;
-
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
