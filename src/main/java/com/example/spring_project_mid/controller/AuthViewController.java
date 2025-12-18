@@ -104,7 +104,23 @@ public class AuthViewController {
         return "form/login";
     }
 
-    // --- FORGOT PASSWORD FLOW ---
+
+    @GetMapping("/")
+    public String showHomePage(Model model) {
+        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+        model.addAttribute("posts", posts);
+        return "home";
+    }
+
+    @GetMapping("/profile")
+    public String showProfilePage(Model model) {
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
+        model.addAttribute("user", user);
+        model.addAttribute("posts", postRepository.findAllByUserOrderByCreatedAtDesc(user));
+        model.addAttribute("isOwner", true);
+        return "profile";
+    }
 
     @GetMapping("/forgot-password")
     public String showForgotPasswordForm(Model model) {
@@ -116,31 +132,28 @@ public class AuthViewController {
     public String processForgotPassword(@ModelAttribute ForgotPasswordRequest request, RedirectAttributes redirectAttributes) {
         try {
             authService.sendOtp(request.getEmail());
-            // Use addAttribute so it appears as a ?email=... query param in the redirect URL
             redirectAttributes.addAttribute("email", request.getEmail());
-            return "redirect:/verify-otp-forgot";
+            return "redirect:/verify-otp-forgot"; // Redirects to the GET mapping below
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/forgot-password";
         }
     }
 
-    @GetMapping("/verify-forgot-password")
+    @GetMapping("/verify-otp-forgot")
     public String showVerifyOtpForgot(@RequestParam("email") String email, Model model) {
         VerifyOtpRequest request = new VerifyOtpRequest();
         request.setEmail(email);
         model.addAttribute("verifyOtpRequest", request);
-        return "form/verify-otp"; // Using your provided OTP template
+        return "form/verify-otp-forgot"; // Matches your filename verify-otp-forgot.html
     }
 
-    @PostMapping("/verify-forgot-password")
+    @PostMapping("/verify-forgot-otp")
     public String handleVerifyForgotOtp(@ModelAttribute VerifyOtpRequest request, RedirectAttributes redirectAttributes) {
         try {
-            // Verify the OTP using existing logic
             authService.verifyOtp(request);
-            // On success, redirect to reset page with email param
             redirectAttributes.addAttribute("email", request.getEmail());
-            return "redirect:/reset-password";
+            return "redirect:/reset-new-password"; // Redirects to the reset password page
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             redirectAttributes.addAttribute("email", request.getEmail());
@@ -161,29 +174,16 @@ public class AuthViewController {
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
             redirectAttributes.addFlashAttribute("error", "Passwords do not match");
             redirectAttributes.addAttribute("email", request.getEmail());
-            return "redirect:/reset-password";
+            return "redirect:/reset-new-password";
         }
-        authService.updatePassword(request.getEmail(), request.getNewPassword());
-        redirectAttributes.addFlashAttribute("successMessage", "Password updated successfully!");
-        return "redirect:/login";
-    }
-
-    // --- OTHER UI METHODS ---
-
-    @GetMapping("/")
-    public String showHomePage(Model model) {
-        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
-        model.addAttribute("posts", posts);
-        return "home";
-    }
-
-    @GetMapping("/profile")
-    public String showProfilePage(Model model) {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        User user = userRepository.findByUsername(username).orElseThrow(() -> new RuntimeException("User not found"));
-        model.addAttribute("user", user);
-        model.addAttribute("posts", postRepository.findAllByUserOrderByCreatedAtDesc(user));
-        model.addAttribute("isOwner", true);
-        return "profile";
+        try {
+            authService.updatePassword(request.getEmail(), request.getNewPassword());
+            redirectAttributes.addFlashAttribute("successMessage", "Password updated successfully!");
+            return "redirect:/login";
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            redirectAttributes.addAttribute("email", request.getEmail());
+            return "redirect:/reset-new-password";
+        }
     }
 }

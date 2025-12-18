@@ -43,9 +43,11 @@ public class SecurityConfig {
                                 "/login",
                                 "/register",
                                 "/verify-otp",
-                                "/forgot-password",       // Add this
-                                "/verify-forgot-otp",    // Add this
-                                "/reset-password",       // Add this
+                                "/forgot-password",
+                                "/verify-otp-forgot",    // Add this (GET mapping)
+                                "/verify-forgot-otp",   // Add this (POST mapping)
+                                "/reset-new-password",  // Add this (GET mapping)
+                                "/reset-password",      // Add this (POST mapping)
                                 "/css/**", "/js/**"
                         ).permitAll()
                         .anyRequest().authenticated()

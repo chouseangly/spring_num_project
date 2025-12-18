@@ -60,16 +60,37 @@
     }, 1000);
 
     otpInputs.forEach((input, index) => {
+        // Handle normal typing
         input.addEventListener('input', (e) => {
             input.value = input.value.replace(/[^0-9]/g, '');
             if (input.value && index < otpInputs.length - 1) otpInputs[index + 1].focus();
             updateFullOtp();
         });
+
+        // Handle backspace
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Backspace' && !input.value && index > 0) {
                 otpInputs[index - 1].focus();
                 updateFullOtp();
             }
+        });
+
+        // Handle Paste functionality
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pastedData = e.clipboardData.getData('text').slice(0, 6).replace(/[^0-9]/g, '');
+
+            pastedData.split('').forEach((char, charIndex) => {
+                if (otpInputs[charIndex]) {
+                    otpInputs[charIndex].value = char;
+                }
+            });
+
+            // Focus the correct field after paste
+            const nextIndex = Math.min(pastedData.length, otpInputs.length - 1);
+            otpInputs[nextIndex].focus();
+
+            updateFullOtp();
         });
     });
 
