@@ -94,10 +94,35 @@ public class AuthViewController {
         VerifyOtpRequest verifyOtpRequest = new VerifyOtpRequest();
         verifyOtpRequest.setEmail(email);
 
+        // Calculate remaining time for the countdown
+        userRepository.findByEmail(email).ifPresent(user -> {
+            if (user.getOtpExpiryTime() != null) {
+                long secondsRemaining = java.time.Duration.between(
+                    java.time.LocalDateTime.now(), 
+                    user.getOtpExpiryTime()
+                ).getSeconds();
+                model.addAttribute("secondsRemaining", Math.max(0, secondsRemaining));
+            }
+        });
+
         model.addAttribute("verifyOtpRequest", verifyOtpRequest);
         model.addAttribute("email", email);
-        model.addAttribute("infoMessage", model.getAttribute("infoMessage"));
         return "form/verify-otp";
+    }
+
+    /**
+     * Handles the resend OTP link.
+     */
+    @GetMapping("/resend-otp")
+    public String resendOtp(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
+        try {
+            authService.resendOtp(email);
+            redirectAttributes.addFlashAttribute("infoMessage", "A new OTP has been sent to your email.");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        redirectAttributes.addAttribute("email", email);
+        return "redirect:/verify-otp";
     }
 
     /**

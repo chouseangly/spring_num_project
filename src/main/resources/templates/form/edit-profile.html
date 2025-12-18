@@ -203,7 +203,7 @@
                     </div>
 
                     <!-- floating upload button (label) -->
-                    <label for="file" class="upload-btn" title="Upload a new photo" id="uploadBtn" aria-hidden="false">
+                    <label for="file" class="upload-btn cursor-pointer" title="Upload a new photo" id="uploadBtn" aria-hidden="false">
                         <i class="fa-solid fa-camera text-red-600"></i>
                     </label>
                 </div>
@@ -212,26 +212,6 @@
                 <input type="file" name="file" id="file" class="hidden" accept="image/*">
 
                 <p class="text-xs text-gray-500 mt-3 dark:text-gray-400">PNG, JPG, GIF up to 10MB</p>
-
-                <!-- Ring style chooser -->
-                <div class="mt-4 flex items-center space-x-4 text-sm">
-                    <span class="text-gray-600 dark:text-gray-300">Ring style:</span>
-
-                    <label class="inline-flex items-center space-x-2">
-                        <input type="radio" name="ring" value="gradient" checked class="ring-radio">
-                        <span class="text-sm">Gradient</span>
-                    </label>
-
-                    <label class="inline-flex items-center space-x-2">
-                        <input type="radio" name="ring" value="solid" class="ring-radio">
-                        <span class="text-sm">Solid</span>
-                    </label>
-
-                    <label class="inline-flex items-center space-x-2">
-                        <input type="radio" name="ring" value="soft" class="ring-radio">
-                        <span class="text-sm">Soft</span>
-                    </label>
-                </div>
             </div>
 
             <!-- Display name -->

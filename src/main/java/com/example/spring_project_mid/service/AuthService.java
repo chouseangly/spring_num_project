@@ -45,11 +45,25 @@ public class AuthService {
                 .role(Role.STUDENT)
                 .enabled(false)
                 .verificationOtp(otp)
-                .otpExpiryTime(LocalDateTime.now().plusMinutes(1))
+                .otpExpiryTime(LocalDateTime.now().plusMinutes(5))
                 .build();
         userRepository.save(user);
-
         emailService.sendOtpEmail(user.getEmail(), otp);
+    }
+
+    /**
+     * Generates and sends a new OTP for the user.
+     */
+    public void resendOtp(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+
+        String newOtp = generateOtp();
+        user.setVerificationOtp(newOtp);
+        user.setOtpExpiryTime(LocalDateTime.now().plusMinutes(5));
+        userRepository.save(user);
+
+        emailService.sendOtpEmail(user.getEmail(), newOtp);
     }
 
     /**
