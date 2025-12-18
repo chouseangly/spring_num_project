@@ -136,9 +136,6 @@ public class AuthViewController {
         return "form/login";
     }
 
-    /**
-     * Displays the authenticated user's profile page.
-     */
     @GetMapping("/profile")
     public String showProfilePage(Model model) {
         String username = SecurityContextHolder.getContext().getAuthentication().getName();
@@ -146,6 +143,7 @@ public class AuthViewController {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
 
+        // Owner sees ALL their posts (including suspended ones)
         List<Post> posts = postRepository.findAllByUserOrderByCreatedAtDesc(user);
         List<Comment> comments = commentRepository.findByUserOrderByCreatedAtDesc(user);
         List<SavedPost> savedPosts = savedPostRepository.findByUserOrderByCreatedAtDesc(user);
@@ -165,6 +163,7 @@ public class AuthViewController {
         model.addAttribute("comments", comments);
         model.addAttribute("activities", activities);
         model.addAttribute("savedPosts", savedPosts);
+        model.addAttribute("isOwner", true); // Flag to show Edit/Delete buttons in HTML
 
         return "profile";
     }
@@ -172,10 +171,15 @@ public class AuthViewController {
     /**
      * Displays the home page with a list of posts.
      */
+    /**
+     * Displays the home page with a list of posts.
+     */
     @GetMapping("/")
     public String showHomePage(Model model) {
-        // Only fetch active posts
-        List<Post> posts = postRepository.findAllBySuspendedFalseOrderByCreatedAtDesc();
+        // CHANGED: Use findAllByOrderByCreatedAtDesc() to show ALL posts (including suspended)
+        // Previous: List<Post> posts = postRepository.findAllBySuspendedFalseOrderByCreatedAtDesc();
+        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+
         model.addAttribute("posts", posts);
         return "home";
     }
@@ -187,17 +191,17 @@ public class AuthViewController {
     public String searchPosts(@RequestParam(value = "q", required = false) String query, Model model) {
         List<Post> posts;
         if (query != null && !query.trim().isEmpty()) {
-            // Uses the query that filters suspended = false
+            // Note: This repository method still filters by suspended=false inside the @Query annotation
+            // If you want search to ALSO show suspended posts, you must update PostRepository.java as well.
             posts = postRepository.searchPosts(query.trim());
         } else {
-            // Default to only active posts
-            posts = postRepository.findAllBySuspendedFalseOrderByCreatedAtDesc();
+            // CHANGED: Match the homepage behavior
+            posts = postRepository.findAllByOrderByCreatedAtDesc();
         }
         model.addAttribute("posts", posts);
         model.addAttribute("searchQuery", query);
         return "home";
     }
-
     /**
      * Shows the form for editing the user's profile.
      */
@@ -248,23 +252,27 @@ public class AuthViewController {
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String currentUsername = auth.getName();
-        
+
         boolean isOwner = targetUser.getUsername().equals(currentUsername);
         boolean isAdmin = auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
 
         List<Post> posts;
 
+        // LOGIC:
+        // 1. If Owner or Admin: Show ALL posts (Active + Suspended).
+        // 2. If Student/Faculty (Visitor): Show ONLY Active (Non-Suspended) posts.
         if (isOwner || isAdmin) {
             posts = postRepository.findAllByUserOrderByCreatedAtDesc(targetUser);
         } else {
+            // This ensures students see the user's posts, provided they aren't suspended.
             posts = postRepository.findAllByUserAndSuspendedFalseOrderByCreatedAtDesc(targetUser);
         }
 
         List<Comment> comments = commentRepository.findByUserOrderByCreatedAtDesc(targetUser);
-        
+
+        // Only show saved posts if the viewer is the owner
         List<SavedPost> savedPosts;
-        
         if (isOwner) {
             savedPosts = savedPostRepository.findByUserOrderByCreatedAtDesc(targetUser);
         } else {
@@ -272,6 +280,7 @@ public class AuthViewController {
         }
 
         List<Object> activities = new ArrayList<>();
+        // Only add posts to activity if they are allowed to be seen
         activities.addAll(posts);
         activities.addAll(comments);
 
@@ -284,8 +293,9 @@ public class AuthViewController {
         model.addAttribute("user", targetUser);
         model.addAttribute("posts", posts);
         model.addAttribute("activities", activities);
+        model.addAttribute("comments", comments);
         model.addAttribute("savedPosts", savedPosts);
-        model.addAttribute("isOwner", isOwner);
+        model.addAttribute("isOwner", isOwner); // HTML uses this to hide Edit/Delete buttons
 
         return "profile";
     }

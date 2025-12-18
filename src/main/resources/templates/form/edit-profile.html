@@ -1,12 +1,24 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
     <title>Edit Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'Battambang', 'sans-serif'] } } } }</script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Battambang', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
+        /* --- your existing dashed label (kept) --- */
         .file-input-label {
             display: block;
             padding: 0.75rem 1rem;
@@ -23,77 +35,242 @@
             border-color: #ef4444;
             background-color: #fef2f2;
         }
+
+        /* Avatar wrapper sizes + center */
+        .avatar-wrap {
+            width: 140px;
+            height: 140px;
+            display: inline-block;
+            position: relative;
+            border-radius: 9999px;
+            padding: 6px; /* space for ring */
+            transition: transform .25s ease, box-shadow .25s ease;
+            cursor: pointer;
+        }
+
+        /* Inner circle where the image sits */
+        .avatar-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 9999px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #e5e7eb; /* gray-200 */
+        }
+
+        /* Image styles */
+        .avatar-inner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            transform-origin: center;
+            transition: transform .35s ease;
+        }
+
+        /* Hover / focus effects */
+        .avatar-wrap:hover,
+        .avatar-wrap.drag-over {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+        }
+        .avatar-wrap:hover img {
+            transform: scale(1.06);
+        }
+
+        /* Animated floating upload button */
+        .upload-btn {
+            position: absolute;
+            right: -6px;
+            bottom: -6px;
+            width: 44px;
+            height: 44px;
+            border-radius: 9999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: 2px solid #ef4444;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+            transition: transform .18s ease, background .18s ease;
+            animation: pulse 2.8s infinite;
+        }
+        .upload-btn:hover {
+            transform: translateY(-4px) scale(1.03);
+            background: #fee2e2;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(239,68,68,0.12); }
+            70% { box-shadow: 0 0 0 14px rgba(239,68,68,0.0); }
+            100% { box-shadow: 0 0 0 0 rgba(239,68,68,0); }
+        }
+
+        /* Ring styles (three variants) */
+        .ring-gradient {
+            background: conic-gradient(from 180deg at 50% 50%, #f58529 0deg, #dd2a7b 120deg, #feda77 240deg);
+        }
+        .ring-solid {
+            background: #ffffff; /* inner background */
+            box-shadow: 0 0 0 4px #ef4444 inset;
+        }
+        .ring-soft {
+            background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(250,250,250,0.9));
+            box-shadow: 0 6px 18px rgba(99,102,241,0.08);
+        }
+
+        /* Gradient ring with inner white circle mask */
+        .ring-gradient::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 9999px;
+            padding: 6px;
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+
+        /* Dropzone hint */
+        .drop-hint {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 9999px;
+            font-size: 0.85rem;
+            color: #ef4444;
+            background: rgba(254,226,226,0.7);
+            opacity: 0;
+            transition: opacity .18s ease;
+            text-align: center;
+            padding: 6px;
+        }
+        .avatar-wrap.drag-over .drop-hint {
+            opacity: 1;
+        }
+
+
+
+        /* Responsive tweaks */
+        @media (max-width: 640px) {
+            .avatar-wrap { width: 120px; height: 120px; padding: 5px; }
+            .upload-btn { width: 40px; height: 40px; }
+        }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen">
 
+<body class="bg-gray-100 min-h-screen text-gray-800">
+
+<!-- Navbar fragment (kept) -->
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div class="p-4 md:p-8">
-    <div class="max-w-2xl mx-auto bg-white px-4 sm:px-8 py-10 rounded-xl shadow">
-        <h2 class="text-2xl font-bold text-gray-800 mb-6">Edit Profile</h2>
+<!-- Centered card -->
+<div class="min-h-[80vh] flex items-center justify-center p-4">
+    <div
+            class="w-full max-w-2xl mx-auto bg-white dark:bg-gray-900 px-6 py-10 rounded-2xl shadow-lg transition-colors"
+            id="card">
 
-        <form th:action="@{/profile/update}" th:object="${user}" method="post" enctype="multipart/form-data" class="space-y-6">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-2xl font-bold dark:text-gray-100">Edit Profile</h2>
 
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
-                <div class="flex items-center space-x-4">
+            <!-- Dark mode toggle -->
 
-                    <div class="w-20 h-20 shrink-0 relative">
+        </div>
+
+        <form th:action="@{/profile/update}" th:object="${user}" method="post" enctype="multipart/form-data" class="space-y-8">
+
+            <!-- Avatar + controls -->
+            <div class="flex flex-col items-center">
+                <div id="avatarWrap" class="avatar-wrap ring-gradient" tabindex="0" title="Click to upload or drag & drop">
+                    <!-- inner circle -->
+                    <div class="avatar-inner" id="avatarInner">
                         <img th:src="${user.avatarUrl != null ? user.avatarUrl : ''}"
                              alt="Avatar"
-                             class="w-20 h-20 rounded-full bg-gray-300 object-cover"
-                             th:classappend="${user.avatarUrl == null} ? 'hidden' : ''"
-                             id="imagePreview">
-
-                        <div class="w-20 h-20 rounded-full bg-gray-300 flex items-center justify-center text-gray-600"
-                             th:classappend="${user.avatarUrl != null} ? 'hidden' : ''"
-                             id="iconPreview">
-                            <i class="fas fa-user fa-2x"></i>
+                             id="imagePreview"
+                             class="hidden"
+                             th:classappend="${user.avatarUrl == null} ? 'hidden' : ''">
+                        <div id="iconPreview" class="text-gray-600">
+                            <i class="fas fa-user fa-4x"></i>
                         </div>
                     </div>
 
-                    <div class="flex-1">
-                        <label for="file" class="file-input-label">
-                            <i class="fas fa-upload mr-2"></i>
-                            <span>Upload a new photo</span>
-                        </label>
-                        <input type="file" name="file" id="file" class="sr-only" accept="image/*">
-                        <p class="text-xs text-gray-500 mt-1">PNG, JPG, GIF up to 10MB.</p>
+                    <!-- drop hint -->
+                    <div class="drop-hint" id="dropHint">
+                        Drop to upload
                     </div>
+
+                    <!-- floating upload button (label) -->
+                    <label for="file" class="upload-btn" title="Upload a new photo" id="uploadBtn" aria-hidden="false">
+                        <i class="fa-solid fa-camera text-red-600"></i>
+                    </label>
+                </div>
+
+                <!-- actual hidden file input -->
+                <input type="file" name="file" id="file" class="hidden" accept="image/*">
+
+                <p class="text-xs text-gray-500 mt-3 dark:text-gray-400">PNG, JPG, GIF up to 10MB</p>
+
+                <!-- Ring style chooser -->
+                <div class="mt-4 flex items-center space-x-4 text-sm">
+                    <span class="text-gray-600 dark:text-gray-300">Ring style:</span>
+
+                    <label class="inline-flex items-center space-x-2">
+                        <input type="radio" name="ring" value="gradient" checked class="ring-radio">
+                        <span class="text-sm">Gradient</span>
+                    </label>
+
+                    <label class="inline-flex items-center space-x-2">
+                        <input type="radio" name="ring" value="solid" class="ring-radio">
+                        <span class="text-sm">Solid</span>
+                    </label>
+
+                    <label class="inline-flex items-center space-x-2">
+                        <input type="radio" name="ring" value="soft" class="ring-radio">
+                        <span class="text-sm">Soft</span>
+                    </label>
                 </div>
             </div>
+
+            <!-- Display name -->
             <div>
-                <label for="displayName" class="block text-sm font-medium text-gray-700">Display Name</label>
+                <label for="displayName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Display Name</label>
                 <div class="mt-1">
                     <input type="text" name="displayName" id="displayName" th:value="${user.displayName}"
-                           class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-base text-gray-900 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200"
+                           class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-700 text-base dark:bg-gray-800 dark:text-gray-100
+                   focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200"
                            placeholder="Your public display name">
                 </div>
             </div>
 
+            <!-- Username (disabled) -->
             <div>
-                <label for="username" class="block text-sm font-medium text-gray-700">Username</label>
+                <label for="username" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Username</label>
                 <div class="mt-1">
                     <input type="text" id="username" th:value="${user.username}" disabled
-                           class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed"
-                           title="Username cannot be changed.">
+                           class="w-full px-4 py-3 rounded-lg border-2 border-gray-200 bg-gray-100 dark:bg-gray-800 dark:border-gray-700
+                   text-gray-500 cursor-not-allowed" title="Username cannot be changed.">
                 </div>
             </div>
 
+            <!-- Bio -->
             <div>
-                <label for="bio" class="block text-sm font-medium text-gray-700">Bio</label>
+                <label for="bio" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Bio</label>
                 <div class="mt-1">
-                    <textarea name="bio" id="bio" rows="4"
-                              class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 text-base text-gray-900 focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200"
-                              placeholder="Tell everyone a little about yourself..."
-                              th:text="${user.bio}"></textarea>
+            <textarea name="bio" id="bio" rows="4"
+                      class="w-full px-4 py-3 rounded-lg border-2 border-gray-300 dark:border-gray-700 text-base dark:bg-gray-800 dark:text-gray-100
+                      focus:outline-none focus:border-red-500 focus:ring-2 focus:ring-red-200"
+                      placeholder="Tell everyone a little about yourself..."
+                      th:text="${user.bio}"></textarea>
                 </div>
             </div>
+
 
             <div class="flex justify-end space-x-4 pt-4">
                 <a th:href="@{/profile}"
-                   class="px-5 py-2 bg-gray-200 text-gray-800 text-sm font-medium rounded-full hover:bg-gray-300">
+                   class="px-5 py-2 bg-gray-200 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-sm font-medium rounded-full hover:bg-gray-300">
                     Cancel
                 </a>
                 <button type="submit"
@@ -106,24 +283,100 @@
 </div>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const fileInput = document.getElementById('file');
-        const imagePreview = document.getElementById('imagePreview');
-        const iconPreview = document.getElementById('iconPreview');
+    // Elements
+    const fileInput = document.getElementById('file');
+    const imagePreview = document.getElementById('imagePreview');
+    const iconPreview = document.getElementById('iconPreview');
+    const avatarWrap = document.getElementById('avatarWrap');
+    const dropHint = document.getElementById('dropHint');
+    const ringRadios = document.querySelectorAll('.ring-radio');
+    const card = document.getElementById('card');
+    const darkToggle = document.getElementById('darkToggle');
+    const darkIcon = document.getElementById('darkIcon');
 
-        fileInput.addEventListener('change', function() {
-            const file = this.files[0];
+    // Initialize ring style (gradient default)
+    function setRingStyle(style) {
+        avatarWrap.classList.remove('ring-gradient', 'ring-solid', 'ring-soft');
+        if (style === 'gradient') avatarWrap.classList.add('ring-gradient');
+        if (style === 'solid') avatarWrap.classList.add('ring-solid');
+        if (style === 'soft') avatarWrap.classList.add('ring-soft');
+    }
 
-            if (file) {
-                const newImageUrl = URL.createObjectURL(file);
+    ringRadios.forEach(r => {
+        r.addEventListener('change', e => setRingStyle(e.target.value));
+    });
 
-                imagePreview.src = newImageUrl;
-
-                imagePreview.classList.remove('hidden');
-
-                iconPreview.classList.add('hidden');
-            }
+    // Drag & drop handlers
+    ['dragenter', 'dragover'].forEach(evt => {
+        avatarWrap.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            avatarWrap.classList.add('drag-over');
         });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        avatarWrap.addEventListener(evt, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (evt === 'drop') {
+                handleFiles(e.dataTransfer.files);
+            }
+            avatarWrap.classList.remove('drag-over');
+        });
+    });
+
+    // Click on wrapper opens the file input
+    avatarWrap.addEventListener('click', (e) => {
+        // if clicking the floating upload label was the target, file input still opens because it's for="file"
+        fileInput.click();
+    });
+
+    // Handle file input change
+    fileInput.addEventListener('change', () => handleFiles(fileInput.files));
+
+    function handleFiles(files) {
+        const file = files[0];
+        if (!file) return;
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file.');
+            return;
+        }
+        // Smaller safety size check (10MB)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File too large. Max 10MB.');
+            return;
+        }
+
+        const blobUrl = URL.createObjectURL(file);
+        showImage(blobUrl);
+        // optionally: you could attach file to a FormData on submit (browser will include the file input because it's named "file")
+    }
+
+    function showImage(url) {
+        imagePreview.src = url;
+        imagePreview.classList.remove('hidden');
+        iconPreview.classList.add('hidden');
+    }
+
+    // Keyboard accessibility: Enter/Space triggers file input
+    avatarWrap.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            fileInput.click();
+        }
+    });
+
+
+    // initialize (apply default ring)
+    setRingStyle('gradient');
+
+    // If Thymeleaf server supplies a user.avatarUrl, show it on load (keeps your existing logic)
+    document.addEventListener('DOMContentLoaded', () => {
+        // If the server populated imagePreview.src via th:src it won't be empty.
+        if (imagePreview && imagePreview.getAttribute('src')) {
+            imagePreview.classList.remove('hidden');
+            if (iconPreview) iconPreview.classList.add('hidden');
+        }
     });
 </script>
 </body>

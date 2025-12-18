@@ -13,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.List;
 
 @Controller
 @RequestMapping("/faculty")
@@ -25,9 +26,12 @@ public class FacultyController {
 
     /**
      * Displays the faculty admin dashboard with posts related to the faculty.
+     * Supports searching within the faculty.
      */
     @GetMapping("/dashboard")
-    public String dashboard(@AuthenticationPrincipal User principal, Model model) {
+    public String dashboard(@AuthenticationPrincipal User principal,
+                            @RequestParam(value = "q", required = false) String query,
+                            Model model) {
         User user = userRepository.findById(principal.getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -39,10 +43,16 @@ public class FacultyController {
             return "faculty/dashboard";
         }
 
-        var posts = postRepository.findAllByFacultyOrderByCreatedAtDesc(faculty);
+        List<Post> posts;
+        if (query != null && !query.trim().isEmpty()) {
+            posts = postRepository.searchPostsInFaculty(query.trim(), faculty);
+        } else {
+            posts = postRepository.findAllByFacultyOrderByCreatedAtDesc(faculty);
+        }
 
         model.addAttribute("faculty", faculty);
         model.addAttribute("posts", posts);
+        model.addAttribute("searchQuery", query); // Pass query back to view
         return "faculty/dashboard";
     }
 
@@ -58,12 +68,13 @@ public class FacultyController {
             Post post = postRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Post not found"));
 
+            // STRICT CHECK: Ensure the post belongs to the same faculty as the admin
             if (user.getFaculty() != null && post.getFaculty() != null &&
                     post.getFaculty().getId().equals(user.getFaculty().getId())) {
                 postRepository.delete(post);
             }
         } catch (Exception e) {
-            // Ignore errors
+            // Log error if needed
         }
         return "redirect:/faculty/dashboard";
     }

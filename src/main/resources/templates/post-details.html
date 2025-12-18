@@ -8,12 +8,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0/dist/fancybox/fancybox.css" />
     <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'Battambang', 'sans-serif'] } } } }</script>
 </head>
-<body class="bg-gray-100 min-h-screen">
+<body class="bg-gray-100 min-h-screen relative">
 
 <div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <div class="max-w-4xl mx-auto p-4 md:p-8">
-    
+
     <a href="/" class="inline-flex items-center text-gray-500 hover:text-gray-800 mb-4 font-medium transition-colors">
         <i class="fas fa-arrow-left mr-2"></i> Back to Feed
     </a>
@@ -35,12 +35,12 @@
             </h1>
 
             <div th:if="${post.images != null and not post.images.isEmpty()}" class="my-6 rounded-lg overflow-hidden"
-                th:with="imageCount=${#lists.size(post.images)}">
+                 th:with="imageCount=${#lists.size(post.images)}">
 
                 <div class="grid grid-cols-6 gap-1">
                     <th:block th:each="image, iterStat : ${post.images}" th:if="${iterStat.index < 7}">
                         <div class="relative"
-                            th:classappend="${
+                             th:classappend="${
                                 (imageCount == 1) ? 'col-span-6' :
                                 (imageCount == 2) ? 'col-span-3' :
                                 (iterStat.index == 0) ? 'col-span-6' :
@@ -57,18 +57,18 @@
 
                             <div th:if="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
                                 <video class="w-full h-full"
-                                    th:classappend="${imageCount == 1 ? 'object-contain bg-black' : 'object-cover'}" controls>
+                                       th:classappend="${imageCount == 1 ? 'object-contain bg-black' : 'object-cover'}" controls>
                                     <source th:src="${image.url}" type="video/mp4">
                                 </video>
-                                </div>
+                            </div>
 
                             <div th:unless="${#strings.endsWith(image.url, '.mp4') or #strings.endsWith(image.url, '.webm')}" class="w-full h-full">
                                 <a th:href="${image.url}" data-fancybox="gallery" class="relative block w-full h-full">
                                     <img th:src="${image.url}" class="w-full h-full"
-                                        th:classappend="${imageCount == 1 ? 'object-contain bg-gray-100' : 'object-cover'}">
-                                    
+                                         th:classappend="${imageCount == 1 ? 'object-contain bg-gray-100' : 'object-cover'}">
+
                                     <div th:if="${imageCount > 7 and iterStat.index == 6}"
-                                        class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10 cursor-pointer">
+                                         class="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-10 cursor-pointer">
                                         <span class="text-white text-3xl font-bold" th:text="'+' + (${imageCount} - 7)">+1</span>
                                     </div>
                                 </a>
@@ -84,7 +84,7 @@
                 </div>
             </div>
 
-            <div class="prose max-w-none text-gray-800 text-lg mb-6 whitespace-pre-wrap post-content" 
+            <div class="prose max-w-none text-gray-800 text-lg mb-6 whitespace-pre-wrap post-content"
                  th:if="${post.content}" th:data-content="${post.content}"></div>
 
             <div class="flex items-center text-gray-500 font-medium text-sm pt-4 border-t border-gray-100">
@@ -102,7 +102,7 @@
                 <a th:href="@{/login}" sec:authorize="isAnonymous()" class="flex items-center py-2 px-4 rounded-full hover:bg-gray-100">
                     <i class="far fa-heart mr-2 text-lg"></i> <span>Like</span>
                 </a>
-                
+
                 <span class="mx-3 font-bold text-gray-700" th:text="${post.votes.size()}">0</span>
 
                 <div class="flex items-center py-2 px-4 rounded-full bg-gray-100 ml-2 text-gray-800">
@@ -141,7 +141,7 @@
                 </div>
             </form>
         </div>
-        
+
         <div sec:authorize="isAnonymous()" class="mb-8 p-4 bg-gray-50 rounded-lg text-center border border-gray-200">
             <p class="text-gray-600 mb-2">Log in to join the discussion.</p>
             <a th:href="@{/login}" class="inline-block px-6 py-2 bg-red-600 text-white rounded-full font-medium hover:bg-red-700">Log In</a>
@@ -156,20 +156,55 @@
                                  class="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0 hover:opacity-80 transition-opacity">
                         </a>
                         <div class="flex-1">
-                            <div class="bg-gray-50 p-3 rounded-2xl rounded-tl-none inline-block min-w-[200px]">
+                            <div th:id="'comment-display-' + ${comment.id}"
+                                 class="bg-gray-50 p-3 rounded-2xl rounded-tl-none inline-block min-w-[200px]">
                                 <div class="flex items-center justify-between mb-1 gap-4">
                                     <a th:href="@{'/users/' + ${comment.user.username}}" class="font-bold text-sm text-gray-900 hover:underline" th:text="${comment.user.username}">User</a>
                                     <span class="text-xs text-gray-500 relative-time" th:data-timestamp="${comment.createdAt}" th:text="${#temporals.format(comment.createdAt, 'dd-MMM-yyyy')}">Date</span>
                                 </div>
                                 <p class="text-gray-800 text-sm whitespace-pre-wrap" th:text="${comment.content}">Content</p>
                             </div>
-                            
-                            <div class="flex items-center gap-4 mt-1 ml-2">
-                                <button type="button" sec:authorize="isAuthenticated()" 
+
+                            <div th:id="'comment-edit-' + ${comment.id}" class="hidden w-full max-w-xl">
+                                <form th:action="@{/comments/{id}/edit(id=${comment.id})}" method="post" class="mt-1">
+                                    <textarea name="content" rows="2" required
+                                              class="w-full p-3 bg-white border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-red-200 text-sm transition-shadow shadow-sm"
+                                              th:text="${comment.content}"></textarea>
+                                    <div class="flex gap-2 mt-2">
+                                        <button type="submit" class="px-4 py-1.5 bg-blue-600 text-white text-xs font-bold rounded-full hover:bg-blue-700 transition-colors">
+                                            Save
+                                        </button>
+                                        <button type="button"
+                                                th:onclick="'toggleEdit(' + ${comment.id} + ')'"
+                                                class="px-4 py-1.5 bg-gray-200 text-gray-700 text-xs font-bold rounded-full hover:bg-gray-300 transition-colors">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <div class="flex items-center gap-3 mt-1 ml-2">
+                                <button type="button" sec:authorize="isAuthenticated()"
                                         class="text-xs font-bold text-gray-500 hover:text-gray-800 cursor-pointer"
                                         th:onclick="'toggleReplyForm(\'reply-form-' + ${comment.id} + '\')'">
                                     Reply
                                 </button>
+
+                                <th:block sec:authorize="isAuthenticated()" th:if="${comment.user.id == #authentication.principal.id}">
+                                    <span class="text-gray-300">&bull;</span>
+
+                                    <button type="button"
+                                            th:onclick="'toggleEdit(' + ${comment.id} + ')'"
+                                            class="text-xs font-bold text-blue-600 hover:text-blue-800 cursor-pointer">
+                                        Edit
+                                    </button>
+
+                                    <button type="button"
+                                            th:onclick="'openDeleteModal(' + ${comment.id} + ')'"
+                                            class="text-xs font-bold text-red-600 hover:text-red-800 cursor-pointer">
+                                        Delete
+                                    </button>
+                                </th:block>
                             </div>
 
                             <div sec:authorize="isAuthenticated()" th:id="'reply-form-' + ${comment.id}" class="hidden mt-3 ml-2">
@@ -192,10 +227,40 @@
                     </div>
                 </div>
             </div>
-            
+
             <div th:if="${#lists.isEmpty(comments)}" class="text-center py-10 text-gray-500">
                 <i class="far fa-comments fa-3x mb-3 text-gray-300"></i>
                 <p>No comments yet. Be the first to share your thoughts!</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal" class="relative z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+    <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+                <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-lg"></i>
+                        </div>
+                        <div class="mt-3 text-center sm:ml-4 sm:mt-0 sm:text-left">
+                            <h3 class="text-base font-semibold leading-6 text-gray-900" id="modal-title">Delete Comment</h3>
+                            <div class="mt-2">
+                                <p class="text-sm text-gray-500">Are you sure you want to delete this comment? This action cannot be undone.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <form id="deleteForm" method="post" action="">
+                        <button type="submit" class="inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 sm:ml-3 sm:w-auto">Delete</button>
+                    </form>
+                    <button type="button" onclick="closeDeleteModal()" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">Cancel</button>
+                </div>
             </div>
         </div>
     </div>
@@ -205,6 +270,21 @@
 <script>
     Fancybox.bind("[data-fancybox]", {});
 
+    // --- DELETE MODAL LOGIC ---
+    function openDeleteModal(commentId) {
+        const modal = document.getElementById('deleteModal');
+        const form = document.getElementById('deleteForm');
+        // Set the form action dynamically to the specific comment ID
+        form.action = '/comments/' + commentId + '/delete';
+        modal.classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.add('hidden');
+    }
+
+    // --- REPLY FORM TOGGLE ---
     function toggleReplyForm(id) {
         const form = document.getElementById(id);
         form.classList.toggle('hidden');
@@ -212,10 +292,26 @@
             form.querySelector('input').focus();
         }
     }
-    
-    // ... (Add your existing timeAgo and linkify scripts here or in a fragment) ...
+
+    // --- EDIT COMMENT TOGGLE ---
+    function toggleEdit(commentId) {
+        const displayDiv = document.getElementById('comment-display-' + commentId);
+        const editDiv = document.getElementById('comment-edit-' + commentId);
+
+        if (displayDiv && editDiv) {
+            if (editDiv.classList.contains('hidden')) {
+                displayDiv.classList.add('hidden');
+                editDiv.classList.remove('hidden');
+                editDiv.querySelector('textarea').focus();
+            } else {
+                displayDiv.classList.remove('hidden');
+                editDiv.classList.add('hidden');
+            }
+        }
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
-         function linkify(plainText) {
+        function linkify(plainText) {
             if (!plainText) return "";
             const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
             return plainText.replace(urlRegex, url => `<a href="${url}" target="_blank" class="text-blue-600 underline">${url}</a>`);
@@ -223,15 +319,14 @@
         document.querySelectorAll('.post-content').forEach(p => {
             if (p.dataset.content) p.innerHTML = linkify(p.dataset.content);
         });
-        
-        // Basic relative time handling
+
         document.querySelectorAll('.relative-time').forEach(el => {
-             const date = new Date(el.dataset.timestamp);
-             const now = new Date();
-             const diff = Math.floor((now - date) / 1000);
-             if(diff < 60) el.textContent = 'just now';
-             else if(diff < 3600) el.textContent = Math.floor(diff/60) + 'm ago';
-             else if(diff < 86400) el.textContent = Math.floor(diff/3600) + 'h ago';
+            const date = new Date(el.dataset.timestamp);
+            const now = new Date();
+            const diff = Math.floor((now - date) / 1000);
+            if(diff < 60) el.textContent = 'just now';
+            else if(diff < 3600) el.textContent = Math.floor(diff/60) + 'm ago';
+            else if(diff < 86400) el.textContent = Math.floor(diff/3600) + 'h ago';
         });
     });
 </script>
