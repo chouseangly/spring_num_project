@@ -78,6 +78,24 @@ public class AuthViewController {
         return "form/verify-otp";
     }
 
+    /**
+     * Handles the resend OTP link.
+     */
+    @GetMapping("/resend-otp")
+    public String resendOtp(@RequestParam("email") String email, RedirectAttributes redirectAttributes) {
+        try {
+            authService.resendOtp(email);
+            redirectAttributes.addFlashAttribute("infoMessage", "A new OTP has been sent to your email.");
+        } catch (RuntimeException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+        redirectAttributes.addAttribute("email", email);
+        return "redirect:/verify-otp";
+    }
+
+    /**
+     * Processes the OTP verification form submission.
+     */
     @PostMapping("/verify-otp")
     public String processOtpVerification(
             @Valid @ModelAttribute("verifyOtpRequest") VerifyOtpRequest verifyOtpRequest,

@@ -7,11 +7,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'Battambang', 'sans-serif'] } } } }</script>
 </head>
-<body data-theme='dark' class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-gray-900 dark:to-gray-800 min-h-screen flex items-center justify-center p-4">
+<body data-theme='dark' class="bg-gradient-to-br from-blue-50 to-blue-100 min-h-screen flex items-center justify-center p-4">
 <div class="max-w-lg mx-auto text-center bg-white px-4 sm:px-8 py-10 rounded-xl shadow">
     <header class="mb-6">
         <h1 class="text-2xl font-bold mb-1">Email Verification</h1>
-        <p class="text-[15px] text-slate-500">Enter the 6-digit verification code that was sent to email.</p>
+        <p class="text-[15px] text-slate-500">Enter the code sent to <span th:text="${email}"></span>.</p>
+        
+        <!-- <div id="timer-container" class="mt-2 text-sm font-semibold text-red-600">
+            Code expires in: <span id="countdown">--:--</span>
+        </div> -->
     </header>
 
     <form th:action="@{/verify-otp}" method="post" th:object="${verifyOtpRequest}" id="otpForm">
@@ -61,6 +65,35 @@
 </div>
 
 <script>
+    // Get secondsRemaining from the Spring Model
+    let secondsRemaining = /*[[${secondsRemaining != null ? secondsRemaining : 0}]]*/ 0;
+    const display = document.querySelector('#countdown');
+
+    function startTimer(duration) {
+        let timer = duration;
+        let interval = setInterval(function () {
+            let minutes = parseInt(timer / 60, 10);
+            let seconds = parseInt(timer % 60, 10);
+
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            display.textContent = minutes + ":" + seconds;
+
+            if (--timer < 0) {
+                clearInterval(interval);
+                display.textContent = "00:00 - Expired";
+                document.getElementById('timer-container').classList.replace('text-red-600', 'text-gray-400');
+            }
+        }, 1000);
+    }
+
+    if (secondsRemaining > 0) {
+        startTimer(secondsRemaining);
+    } else {
+        display.textContent = "00:00 - Expired";
+    }
+
     const otpInputsContainer = document.getElementById('otpInputs');
     const otpInputs = otpInputsContainer.querySelectorAll('.otp-input');
     const fullOtpInput = document.getElementById('fullOtp');
@@ -136,7 +169,6 @@
     if(otpInputs.length > 0) {
         otpInputs[0].focus();
     }
-
 </script>
 </body>
 </html>
