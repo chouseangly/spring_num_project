@@ -77,7 +77,7 @@
 
     <div>
         <div id="overview-tab-content" class="tab-content">
-            <div th:if="${activities == null or activities.isEmpty()}" class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
+            <div th:if="${activities.isEmpty()}" class="bg-white p-6 rounded-lg shadow-md text-center text-gray-500">
                 <i class="fas fa-stream fa-2x mb-2"></i>
                 <h3 class="text-lg font-semibold">No activity yet</h3>
                 <p>Posts and comments will appear here.</p>
@@ -315,7 +315,7 @@
                                 </form>
                             </th:block>
 
-                            <form th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}"
+                            <form th:if="${#authorization.expression('hasAnyRole(''SUPER_ADMIN'', ''SUB_ADMIN'')')}"
                                   method="post">
                                 <button type="button"
                                         th:onclick="'openSuspendModal(\'/posts/' + ${post.id} + '/toggle-suspend\', ' + ${post.suspended} + ')'"
@@ -771,13 +771,13 @@
         });
 
         const hash = window.location.hash.substring(1);
-        const tabToActivate = hash || 'posts';
+        const tabToActivate = hash || 'overview';
         const activeTab = document.querySelector(`.profile-tab[data-tab="${tabToActivate}"]`);
 
         if (activeTab) {
             activeTab.click();
         } else {
-            document.querySelector('.profile-tab[data-tab="posts"]').click();
+            document.querySelector('.profile-tab[data-tab="overview"]').click();
         }
     });
 </script>
