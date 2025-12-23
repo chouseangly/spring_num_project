@@ -123,7 +123,7 @@
                                     </form>
                                 </th:block>
 
-                                <form th:if="${#authorization.expression('hasRole(''SUPER_ADMIN'')')}"
+                                <form th:if="${#request.isUserInRole('SUPER_ADMIN') or #request.isUserInRole('SUB_ADMIN')}"
                                       method="post">
                                     <button type="button"
                                             th:onclick="'openSuspendModal(\'/posts/' + ${activity.id} + '/toggle-suspend\', ' + ${activity.suspended} + ')'"

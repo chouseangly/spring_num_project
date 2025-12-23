@@ -99,7 +99,7 @@ public class CommentController {
 
     // --- SUSPEND/UNSUSPEND COMMENT (ADMIN ONLY) ---
     @PostMapping("/{id}/toggle-suspend")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SUB_ADMIN')")
     public String toggleSuspend(@PathVariable Long id, HttpServletRequest request) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Comment not found"));

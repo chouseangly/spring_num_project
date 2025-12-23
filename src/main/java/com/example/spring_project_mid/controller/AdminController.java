@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 @Controller
 @RequestMapping("/admin")
 @RequiredArgsConstructor
-@PreAuthorize("hasRole('SUPER_ADMIN')")
+@PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SUB_ADMIN')")
 public class AdminController {
 
     private final UserRepository userRepository;
@@ -66,6 +66,7 @@ public class AdminController {
      * Toggles the enabled status of a user.
      */
     @PostMapping("/users/{id}/toggle-status")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public String toggleUserStatus(@PathVariable Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -78,6 +79,7 @@ public class AdminController {
      * Deletes a user by ID.
      */
     @PostMapping("/users/{id}/delete")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public String deleteUser(@PathVariable Long id) {
         userRepository.deleteById(id);
         return "redirect:/admin/users";
@@ -87,6 +89,7 @@ public class AdminController {
      * Displays the user edit form.
      */
     @GetMapping("/users/{id}/edit")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public String editUserForm(@PathVariable Long id, Model model) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -100,6 +103,7 @@ public class AdminController {
      * Updates user details such as role and faculty.
      */
     @PostMapping("/users/{id}/update")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     public String updateUser(@PathVariable Long id,
                              @RequestParam("role") Role role) {
 
