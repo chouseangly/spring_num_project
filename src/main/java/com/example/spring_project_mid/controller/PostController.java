@@ -232,7 +232,7 @@ public class PostController {
      * Only accessible by SUPER_ADMIN.
      */
     @PostMapping("/{id}/toggle-suspend")
-    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'SUB_ADMIN')")
     public String toggleSuspend(@PathVariable Long id, HttpServletRequest request) {
         Post post = postRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Post not found"));

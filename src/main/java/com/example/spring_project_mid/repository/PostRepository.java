@@ -10,20 +10,18 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<Post, Long> {
-
-    // Removed "faculty" from the paths below
     @EntityGraph(attributePaths = {"user", "votes", "comments", "images", "savedPosts"})
     List<Post> findAllByUserOrderByCreatedAtDesc(User user);
 
-    // 1. For Homepage - FIX: Removed "faculty"
+    // 1. For Homepage without suspended posts
     @EntityGraph(attributePaths = {"user", "votes", "comments", "images", "savedPosts"})
-    List<Post> findAllByOrderByCreatedAtDesc();
+    List<Post> findAllBySuspendedFalseOrderByCreatedAtDesc();
 
-    // 2. For Visiting other profiles - FIX: Removed "faculty"
+    // 2. For Visiting other profiles
     @EntityGraph(attributePaths = {"user", "votes", "comments", "images", "savedPosts"})
     List<Post> findAllByUserAndSuspendedFalseOrderByCreatedAtDesc(User user);
 
-    // 3. Updated Search - FIX: Removed "faculty"
+    // 3. Updated Search
     @EntityGraph(attributePaths = {"user", "votes", "comments", "images", "savedPosts"})
     @Query("SELECT p FROM Post p WHERE (" +
             "LOWER(p.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +

@@ -124,7 +124,7 @@ public class AuthViewController {
 
     @GetMapping("/")
     public String showHomePage(Model model) {
-        List<Post> posts = postRepository.findAllByOrderByCreatedAtDesc();
+        List<Post> posts = postRepository.findAllBySuspendedFalseOrderByCreatedAtDesc();
         model.addAttribute("posts", posts);
         return "home";
     }
@@ -135,34 +135,76 @@ public class AuthViewController {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        model.addAttribute("user", user);
-        model.addAttribute("posts", postRepository.findAllByUserOrderByCreatedAtDesc(user));
-        model.addAttribute("isOwner", true);
+        // Owner sees ALL their posts (including suspended ones)
+        List<Post> posts = postRepository.findAllByUserOrderByCreatedAtDesc(user);
+        List<Comment> comments = commentRepository.findByUserOrderByCreatedAtDesc(user);
 
-        // FIX: Add empty activities list to prevent template crash
-        model.addAttribute("activities", new ArrayList<>());
+        List<Object> activities = new ArrayList<>();
+        activities.addAll(posts);
+        activities.addAll(comments);
+
+        activities.sort((o1, o2) -> {
+            LocalDateTime t1 = (o1 instanceof Post) ? ((Post) o1).getCreatedAt() : ((Comment) o1).getCreatedAt();
+            LocalDateTime t2 = (o2 instanceof Post) ? ((Post) o2).getCreatedAt() : ((Comment) o2).getCreatedAt();
+            return t2.compareTo(t1);
+        });
+
+        model.addAttribute("user", user);
+        model.addAttribute("activities", activities);
+        model.addAttribute("posts", posts);
+        model.addAttribute("comments", comments);
+        model.addAttribute("savedPosts", savedPostRepository.findByUserOrderByCreatedAtDesc(user));
+        model.addAttribute("isOwner", true);
+        
 
         return "profile";
     }
 
     /**
-     * Fixed: Added mapping to handle profile viewing for other users.
-     * This prevents the 404 error when clicking usernames in the post feed.
+     * Displays another user's profile page.
      */
     @GetMapping("/users/{username}")
     public String showUserProfile(@PathVariable String username, Model model) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
 
-        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
-        boolean isOwner = currentUsername.equals(username);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = auth.getName();
+
+        boolean isOwner = user.getUsername().equals(currentUsername);
+        boolean isAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN") || a.getAuthority().equals("ROLE_SUB_ADMIN"));
+
+        List<Post> posts;
+        List<Comment> comments;
+
+        if (isOwner || isAdmin) {
+            posts = postRepository.findAllByUserOrderByCreatedAtDesc(user);
+        } else {
+            posts = postRepository.findAllByUserAndSuspendedFalseOrderByCreatedAtDesc(user);
+        }
+
+        if (isOwner || isAdmin) {
+            comments = commentRepository.findByUserOrderByCreatedAtDesc(user);
+        } else {
+            comments = commentRepository.findByUserAndSuspendedFalseOrderByCreatedAtDesc(user);
+        }
+
+        List<Object> activities = new ArrayList<>();
+        activities.addAll(posts);
+        activities.addAll(comments);
+
+        activities.sort((o1, o2) -> {
+            LocalDateTime t1 = (o1 instanceof Post) ? ((Post) o1).getCreatedAt() : ((Comment) o1).getCreatedAt();
+            LocalDateTime t2 = (o2 instanceof Post) ? ((Post) o2).getCreatedAt() : ((Comment) o2).getCreatedAt();
+            return t2.compareTo(t1);
+        });
 
         model.addAttribute("user", user);
-        model.addAttribute("posts", postRepository.findAllByUserOrderByCreatedAtDesc(user));
+        model.addAttribute("activities", activities);
+        model.addAttribute("posts", posts);
+        model.addAttribute("comments", comments);
         model.addAttribute("isOwner", isOwner);
-
-        // FIX: Add empty activities list to prevent template crash
-        model.addAttribute("activities", new ArrayList<>());
 
         return "profile";
     }
