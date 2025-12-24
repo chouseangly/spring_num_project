@@ -4,7 +4,7 @@ A comprehensive social networking and event management platform designed for the
 
 ## 🚀 Overview
 
-This project is a full-stack web application built with **Spring Boot** (Java) and **Thymeleaf**. It features a robust authentication system with email OTP verification, role-based access control (Student and Super Admin), and media integration using **Pinata (IPFS)** for decentralized file storage.
+This project is a full-stack web application built with **Spring Boot** (Java) and **Thymeleaf**. It features a robust authentication system with email OTP verification, role-based access control (Student, Admin, and Super Admin), and media integration using **Pinata (IPFS)** for decentralized file storage.
 
 ## 🛠️ Tech Stack
 
@@ -40,7 +40,7 @@ This project is a full-stack web application built with **Spring Boot** (Java) a
 ### 📝 Content & Social
 
 * **Posts**: Create text, image, and video posts.
-* **Interactions**: Like, Save (Bookmark), and Comment on posts.
+* **Interactions**: Like/Vote, Save (Bookmark), and Comment on posts.
 * **Nested Comments**: Threaded replies to comments.
 * **Feed**: Chronological feed of community posts.
 * **Search**: Filter posts and users by keywords.
@@ -49,12 +49,13 @@ This project is a full-stack web application built with **Spring Boot** (Java) a
 ### 🛡️ Administrative Roles
 
 * **Student**: Standard access to feed, posting, and profile.
+* **Sub Admin**: 
+    * Read-only access to the Admin Dashboard and User Lists.
+    * Global Content Moderation.
 * **Super Admin**:
-* Global Dashboard (User and Post statistics).
-* User Management (Suspend/Ban users, Edit Roles).
-* Global Content Moderation (Suspend/Delete posts).
-
-
+    * Global Dashboard (User and Post statistics).
+    * User Management (Suspend/Ban users, Edit Roles, Delete Users).
+    * Global Content Moderation.
 
 ## ⚙️ Configuration & Setup
 
@@ -69,106 +70,3 @@ This project is a full-stack web application built with **Spring Boot** (Java) a
 ```bash
 git clone <repository-url>
 cd spring_num_project-reach
-
-```
-
-### 2. Database Setup
-
-Create a PostgreSQL database named `spring_num_app`:
-
-```sql
-CREATE DATABASE spring_num_app;
-
-```
-
-### 3. Environment Configuration
-
-Open `src/main/resources/application.properties` and configure your credentials.
-
-**Database:**
-
-```properties
-spring.datasource.url=jdbc:postgresql://localhost:5432/spring_num_app
-spring.datasource.username=YOUR_DB_USERNAME
-spring.datasource.password=YOUR_DB_PASSWORD
-
-```
-
-**Email (SMTP - Required for OTP):**
-
-```properties
-spring.mail.host=smtp.gmail.com
-spring.mail.port=587
-spring.mail.username=YOUR_EMAIL@gmail.com
-spring.mail.password=YOUR_APP_PASSWORD
-
-```
-
-**Pinata (IPFS - Required for File Uploads):**
-
-```properties
-pinata.jwt.token=YOUR_PINATA_JWT_TOKEN
-pinata.api.url=https://api.pinata.cloud/pinning/pinFileToIPFS
-ipfs.gateway.url=https://YOUR_GATEWAY.mypinata.cloud/ipfs/
-
-```
-
-### 4. Run the Application
-
-You can run the application using the Maven wrapper:
-
-**Windows:**
-
-```cmd
-mvnw.cmd spring-boot:run
-
-```
-
-**Linux/Mac:**
-
-```bash
-./mvnw spring-boot:run
-
-```
-
-The application will start at `http://localhost:8081`.
-
-## 📂 Project Structure
-
-```
-src/main/java/com/example/spring_project_mid
-├── config/          # Security filters (JwtAuthenticationFilter, UserStatusFilter)
-├── controller/      # Web controllers (Admin, Post, Auth, User, etc.)
-├── dto/             # Data Transfer Objects (RegisterRequest, LoginRequest)
-├── model/           # JPA Entities (User, Post, Comment, Notification, etc.)
-├── repository/      # Spring Data Repositories
-└── service/         # Business Logic (AuthService, PinataService, EmailService)
-
-src/main/resources
-├── templates/       # Thymeleaf HTML views
-│   ├── admin/       # Admin dashboard views
-│   ├── form/        # Login/Register forms
-│   ├── fragments/   # Reusable components (navbar, sidebar)
-│   └── ...
-└── application.properties
-
-```
-
-## 🔒 Roles and Permissions
-
-| Role | Permissions |
-| --- | --- |
-| **STUDENT** | View feed, Create posts, Comment, Like, Manage own profile. |
-| **SUPER_ADMIN** | Full system access. Manage Users (Ban/Suspend), Edit Roles, and global content moderation. |
-
-## 🤝 Contributing
-
-1. Fork the repository.
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`).
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`).
-4. Push to the branch (`git push origin feature/AmazingFeature`).
-5. Open a Pull Request.
-
-## 📄 License
-
-This project is licensed under the Apache License 2.0.
