@@ -48,4 +48,8 @@ public class Comment {
     public boolean isSuspended() {
         return Boolean.TRUE.equals(this.suspended);
     }
+
+    public String getType() {
+        return "Comment";
+    }
 }

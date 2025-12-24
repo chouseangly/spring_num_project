@@ -54,11 +54,11 @@ public class Post {
     @EqualsAndHashCode.Exclude
     private Set<Image> images = new HashSet<>();
 
-    // --- FIX: Use Wrapper Class Boolean instead of primitive boolean ---
+    // --- Use Wrapper Class Boolean instead of primitive boolean ---
     @Column(name = "suspended")
     private Boolean suspended = false;
 
-    // --- FIX: Add this method to handle NULLs safely ---
+    // --- Add this method to handle NULLs safely ---
     // This ensures calls to post.isSuspended() in your Controller/Thymeleaf don't crash or return null
     public boolean isSuspended() {
         return Boolean.TRUE.equals(this.suspended);
@@ -78,5 +78,9 @@ public class Post {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public String getType() {
+        return "Post";
     }
 }

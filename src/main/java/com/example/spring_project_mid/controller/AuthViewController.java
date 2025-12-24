@@ -151,12 +151,11 @@ public class AuthViewController {
 
         model.addAttribute("user", user);
         model.addAttribute("activities", activities);
-        model.addAttribute("posts", postRepository.findAllByUserOrderByCreatedAtDesc(user));
-        model.addAttribute("comments", commentRepository.findByUserOrderByCreatedAtDesc(user));
+        model.addAttribute("posts", posts);
+        model.addAttribute("comments", comments);
         model.addAttribute("savedPosts", savedPostRepository.findByUserOrderByCreatedAtDesc(user));
         model.addAttribute("isOwner", true);
-
-        model.addAttribute("activities", new ArrayList<>());
+        
 
         return "profile";
     }
@@ -179,9 +178,6 @@ public class AuthViewController {
         List<Post> posts;
         List<Comment> comments;
 
-        // LOGIC:
-        // 1. If Owner or Admin: Show ALL posts (Active + Suspended).
-        // 2. If Student/Faculty (Visitor): Show ONLY Active (Non-Suspended) posts.
         if (isOwner || isAdmin) {
             posts = postRepository.findAllByUserOrderByCreatedAtDesc(user);
         } else {
@@ -204,15 +200,11 @@ public class AuthViewController {
             return t2.compareTo(t1);
         });
 
-
         model.addAttribute("user", user);
         model.addAttribute("activities", activities);
-        model.addAttribute("posts", postRepository.findAllByUserAndSuspendedFalseOrderByCreatedAtDesc(user));
-        model.addAttribute("comments", commentRepository.findByUserOrderByCreatedAtDesc(user));
+        model.addAttribute("posts", posts);
+        model.addAttribute("comments", comments);
         model.addAttribute("isOwner", isOwner);
-
-        // Add empty activities list to prevent template crash
-        model.addAttribute("activities", new ArrayList<>());
 
         return "profile";
     }
