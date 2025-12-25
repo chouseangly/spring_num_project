@@ -182,8 +182,25 @@
                                 </div>
                             </div>
 
-                            <div th:id="'comment-edit-' + ${comment.id}" class="hidden w-full max-w-xl">
-                                </div>
+                            <div th:id="'comment-edit-' + ${comment.id}" class="hidden w-full max-w-xl mt-2">
+                                <form th:action="@{/comments/{id}/edit(id=${comment.id})}" method="post" class="w-full">
+                                    <textarea name="content" rows="2" required
+                                            class="w-full p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-400 text-sm bg-white"
+                                            th:text="${comment.content}"></textarea>
+                                    
+                                    <div class="flex justify-end gap-2 mt-2">
+                                        <button type="button" 
+                                                th:onclick="'toggleEdit(' + ${comment.id} + ')'"
+                                                class="px-3 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors">
+                                            Cancel
+                                        </button>
+                                        <button type="submit" 
+                                                class="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors shadow-sm">
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
 
                             <div class="flex items-center gap-3 mt-1 ml-2">
                                 <button type="button" sec:authorize="isAuthenticated()"
@@ -191,6 +208,32 @@
                                         th:onclick="'toggleReplyForm(\'reply-form-' + ${comment.id} + '\')'">
                                     Reply
                                 </button>
+
+                                <div th:id="'reply-form-' + ${comment.id}" class="hidden mt-3 ml-2">
+                                    <div sec:authorize="isAuthenticated()" class="flex gap-3">
+                                        <img th:src="${#authentication.principal.avatarUrl ?: 'https://ui-avatars.com/api/?name=' + #authentication.principal.username}"
+                                            class="w-8 h-8 rounded-full bg-gray-200 flex-shrink-0">
+                                        
+                                        <form th:action="@{/posts/{postId}/comments(postId=${post.id})}" method="post" class="w-full max-w-xl">
+                                            <input type="hidden" name="parentCommentId" th:value="${comment.id}">
+                                            
+                                            <div class="relative">
+                                                <input type="text" name="content" placeholder="Write a reply..." required
+                                                    class="w-full py-2 px-4 pr-20 border border-gray-300 rounded-full text-sm focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-200 bg-white">
+                                                
+                                                <button type="submit" 
+                                                        class="absolute right-1 top-1/2 -translate-y-1/2 bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-full hover:bg-red-700 transition-colors">
+                                                    Reply
+                                                </button>
+                                            </div>
+                                            <button type="button" 
+                                                    th:onclick="'toggleReplyForm(\'reply-form-' + ${comment.id} + '\')'"
+                                                    class="ml-2 mt-1 text-xs text-gray-500 hover:text-gray-800 font-medium">
+                                                Cancel
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
 
                                 <th:block sec:authorize="isAuthenticated()">
                                     <th:block th:if="${comment.user.id == #authentication.principal.id}">
